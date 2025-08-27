@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <title>MyGPT Activity Dashboard</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .totals-row, .averages-row {
+            background-color: rgba(128, 128, 128, 0.8) !important;
+            color: white !important;
+        }
+        .nav-link {
+            display: inline-block;
+            padding: 5px 10px;
+            text-decoration: none;
+            color: #007bff;
+        }
+        .nav-link:hover {
+            text-decoration: none;
+        }
+        .nav-link.active {
+            font-weight: bold;
+            color: white !important;
+            background-color: darkblue;
+            border-radius: 5px;
+        }
+        .active {
+            font-weight: bold;
+            color: white !important;
+            background-color: darkblue;
+            padding: 5px 10px;
+            border-radius: 5px;
+            text-decoration: none;
+        }
+        .active:hover {
+            color: white !important;
+            text-decoration: none;
+        }
+    </style>
+    <script>
+        function sortTable(column) {
+            let currentUrl = new URL(window.location);
+            let params = currentUrl.searchParams;
+            let currentSort = params.get('sort_by');
+            let currentOrder = params.get('order');
+
+            if (currentSort === column) {
+                currentOrder = currentOrder === 'asc' ? 'desc' : 'asc';
+            } else {
+                currentOrder = 'asc';
+            }
+
+            params.set('sort_by', column);
+            params.set('order', currentOrder);
+            currentUrl.search = params.toString();
+            window.location = currentUrl.toString();
+        }
+    </script>
+</head>
+<body>
+    <div class="container-fluid mt-5">
+        <div class="row mb-4">
+            <div class="col">
+                <h1 class="text-center">MyGPT Activity Dashboard</h1>
+                <div class="text-center mb-4">
+                    <a href="{{ url_for('reporting_dashboard') }}" class="nav-link d-inline-block active">Usage Dashboard</a> |
+                    <a href="{{ url_for('metrics_dashboard') }}" class="nav-link d-inline-block">Metrics Dashboard</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="text-center mb-4">
+            <a href="{{ url_for('reporting_dashboard', range='last24', sort_by=sort_by, order=order) }}" 
+               class="{{ 'active' if range_code == 'last24' else '' }}">Last 24 Hours</a> |
+            <a href="{{ url_for('reporting_dashboard', range='last7', sort_by=sort_by, order=order) }}" 
+               class="{{ 'active' if range_code == 'last7' else '' }}">Last 7 Days</a> |
+            <a href="{{ url_for('reporting_dashboard', range='current_month', sort_by=sort_by, order=order) }}" 
+               class="{{ 'active' if range_code == 'current_month' else '' }}">Current Month</a> |
+            <a href="{{ url_for('reporting_dashboard', range='last_month', sort_by=sort_by, order=order) }}" 
+               class="{{ 'active' if range_code == 'last_month' else '' }}">Last Month</a> |
+            <a href="{{ url_for('reporting_dashboard', range='last30', sort_by=sort_by, order=order) }}" 
+               class="{{ 'active' if range_code == 'last30' else '' }}">Last 30 Days</a> |
+            <a href="{{ url_for('reporting_dashboard', range='last60', sort_by=sort_by, order=order) }}" 
+               class="{{ 'active' if range_code == 'last60' else '' }}">Last 60 Days</a> |
+            <a href="{{ url_for('reporting_dashboard', range='last90', sort_by=sort_by, order=order) }}" 
+               class="{{ 'active' if range_code == 'last90' else '' }}">Last 90 Days</a> |
+            <a href="{{ url_for('reporting_dashboard', range='all_time', sort_by=sort_by, order=order) }}" 
+               class="{{ 'active' if range_code == 'all_time' else '' }}">All Time</a>
+            <br><br>
+            <a class="btn btn-primary" 
+               href="{{ url_for('download_report', range=range_code, sort_by=sort_by, order=order) }}">
+                Download Report (CSV)
+            </a>
+        </div>
+
+        <p class="text-center">
+            <strong>Report Date Range:</strong> {{ start_time.strftime('%Y-%m-%d') }} to {{ end_time.strftime('%Y-%m-%d') }}
+        </p>
+
+        <table class="table table-striped table-bordered mt-4">
+            <thead class="thead-dark">
+                <tr>
+                    <th>#</th>
+                    <th onclick="sortTable('user_name')">User Name</th>
+                    <th onclick="sortTable('email')">Email</th>
+                    <th onclick="sortTable('last_usage_display')">Last Use (Days)</th>
+                    <th onclick="sortTable('conversations')">Conversations</th>
+                    <th onclick="sortTable('messages')">Messages</th>
+                    <th onclick="sortTable('file_count')">Files</th>
+                    <th onclick="sortTable('file_size')">File Size (MB)</th>
+                    <th onclick="sortTable('input_tokens')">Input Tokens</th>
+                    <th onclick="sortTable('output_tokens')">Output Tokens</th>
+                    <th onclick="sortTable('input_cost')">Input Cost ($)</th>
+                    <th onclick="sortTable('output_cost')">Output Cost ($)</th>
+                    <th onclick="sortTable('total_cost')">Total Cost ($)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="totals-row">
+                    <th></th>
+                    <th colspan="2">Totals ({{ total_users }} Users)</th>
+                    <th></th>
+                    <th>{{ "{:,}".format(totals.conversations|default(0)) }}</th>
+                    <th>{{ "{:,}".format(totals.messages|default(0)) }}</th>
+                    <th>{{ "{:,}".format(totals.file_count|default(0)) }}</th>
+                    <th>{{ "{:,.2f}".format(totals.file_size|default(0)) }}</th>
+                    <th>{{ "{:,.0f}".format(totals.input_tokens|default(0)) }}</th>
+                    <th>{{ "{:,.0f}".format(totals.output_tokens|default(0)) }}</th>
+                    <th>{{ "{:,.2f}".format(totals.input_cost|default(0)) }}</th>
+                    <th>{{ "{:,.2f}".format(totals.output_cost|default(0)) }}</th>
+                    <th>{{ "{:,.2f}".format(totals.total_cost|default(0)) }}</th>
+                </tr>
+                <tr class="averages-row">
+                    <th></th>
+                    <th colspan="2">Averages Per User</th>
+                    <th></th>
+                    <th>{{ "{:,.2f}".format(average_data.conversations|default(0)) }}</th>
+                    <th>{{ "{:,.2f}".format(average_data.messages|default(0)) }}</th>
+                    <th>{{ "{:,.2f}".format(average_data.file_count|default(0)) }}</th>
+                    <th>{{ "{:,.2f}".format(average_data.file_size|default(0)) }}</th>
+                    <th>{{ "{:,.0f}".format(average_data.input_tokens|default(0)) }}</th>
+                    <th>{{ "{:,.0f}".format(average_data.output_tokens|default(0)) }}</th>
+                    <th>{{ "{:,.2f}".format(average_data.input_cost|default(0)) }}</th>
+                    <th>{{ "{:,.2f}".format(average_data.output_cost|default(0)) }}</th>
+                    <th>{{ "{:,.2f}".format(average_data.total_cost|default(0)) }}</th>
+                </tr>
+                {% for row in report_data %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ row.user_name|default('N/A') }}</td>
+                    <td>{{ row.email|default('N/A') }}</td>
+                    <td>{{ row.last_usage_display|default('(never)') }}</td>
+                    <td>{{ "{:,}".format(row.conversations|default(0)) }}</td>
+                    <td>{{ "{:,}".format(row.messages|default(0)) }}</td>
+                    <td>{{ "{:,}".format(row.file_count|default(0)) }}</td>
+                    <td>{{ "{:,.2f}".format(row.file_size|default(0)) }}</td>
+                    <td>{{ "{:,}".format(row.input_tokens|default(0)) }}</td>
+                    <td>{{ "{:,.0f}".format(row.output_tokens|default(0)) }}</td>
+                    <td>{{ "{:,.2f}".format(row.input_cost|default(0)) }}</td>
+                    <td>{{ "{:,.2f}".format(row.output_cost|default(0)) }}</td>
+                    <td>{{ "{:,.2f}".format(row.total_cost|default(0)) }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr class="thead-dark">
+                    <th>#</th>
+                    <th onclick="sortTable('user_name')">User Name</th>
+                    <th onclick="sortTable('email')">Email</th>
+                    <th onclick="sortTable('last_usage_display')">Last Use (Days)</th>
+                    <th onclick="sortTable('conversations')">Conversations</th>
+                    <th onclick="sortTable('messages')">Messages</th>
+                    <th onclick="sortTable('file_count')">Files</th>
+                    <th onclick="sortTable('file_size')">File Size (MB)</th>
+                    <th onclick="sortTable('input_tokens')">Input Tokens</th>
+                    <th onclick="sortTable('output_tokens')">Output Tokens</th>
+                    <th onclick="sortTable('input_cost')">Input Cost ($)</th>
+                    <th onclick="sortTable('output_cost')">Output Cost ($)</th>
+                    <th onclick="sortTable('total_cost')">Total Cost ($)</th>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+</body>
+</html>

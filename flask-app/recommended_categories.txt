@@ -1,0 +1,65 @@
+# Recommended Categories for Message Classification
+
+Based on the analysis of 500 messages, here are the 20 most appropriate categories for classifying first messages in conversations:
+
+1. **General Information Request** - General inquiries seeking factual information or explanations
+   - Example: "Can you tell me about the history of artificial intelligence?"
+
+2. **Technical Inquiry** - Questions about technical concepts, systems, or processes
+   - Example: "How does OAuth authentication work?"
+
+3. **Programming Request** - Requests for code, programming help, or software development
+   - Example: "Write a Python script to parse this CSV file"
+
+4. **Medical Inquiry** - Questions about medical conditions, treatments, or healthcare
+   - Example: "What are the side effects of Rituximab?"
+
+5. **Business Analysis** - Requests for business information, market analysis, or company details
+   - Example: "Provide an overview of the pharmaceutical industry in Europe"
+
+6. **Document Creation** - Requests to create documents, reports, or presentations
+   - Example: "Create a PowerPoint presentation about our Q1 results"
+
+7. **Content Editing** - Requests to edit, proofread, or improve existing content
+   - Example: "Edit this email to make it more professional"
+
+8. **Translation Request** - Requests to translate text between languages
+   - Example: "Translate this Japanese phrase to English"
+
+9. **Data Analysis** - Requests to analyze, interpret, or visualize data
+   - Example: "Analyze these sales figures and identify trends"
+
+10. **Technical Support** - Requests for help with technical issues or troubleshooting
+    - Example: "My Power BI visualization isn't displaying correctly"
+
+11. **Summarization** - Requests to summarize documents, articles, or other content
+    - Example: "Summarize this research paper on climate change"
+
+12. **Creative Writing** - Requests for creative content like stories, poems, or marketing copy
+    - Example: "Write a short story about a space explorer"
+
+13. **Research Request** - Requests for in-depth research on specific topics
+    - Example: "Research the latest advancements in quantum computing"
+
+14. **Comparison** - Requests to compare different options, products, or approaches
+    - Example: "Compare React vs. Angular for web development"
+
+15. **Process Guidance** - Requests for step-by-step instructions or workflows
+    - Example: "Explain the process for FDA drug approval"
+
+16. **Feedback Request** - Requests for opinions, evaluations, or assessments
+    - Example: "What do you think of this marketing strategy?"
+
+17. **Email Drafting** - Requests to draft or help with email content
+    - Example: "Draft an email to decline a business proposal"
+
+18. **Legal/Regulatory Inquiry** - Questions about laws, regulations, or compliance
+    - Example: "Explain GDPR requirements for data storage"
+
+19. **Educational Content** - Requests for learning materials or educational content
+    - Example: "Create a tutorial on machine learning basics"
+
+20. **Brainstorming** - Requests for ideas, suggestions, or creative solutions
+    - Example: "Generate ideas for our team-building event"
+
+These categories cover the main types of requests observed in the message analysis while eliminating duplicates and providing clear, distinct classifications. They are general enough to apply to a wide range of messages but specific enough to provide meaningful insights into user behavior.

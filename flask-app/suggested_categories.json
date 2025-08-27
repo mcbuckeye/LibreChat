@@ -1,0 +1,508 @@
+{
+  "suggested_categories": [
+    "information request",
+    "information request",
+    "task request",
+    "technical inquiry",
+    "informational query",
+    "programming request",
+    "medical inquiry",
+    "technical support",
+    "translation request",
+    "error report",
+    "data dump",
+    "business request",
+    "information request",
+    "business inquiry",
+    "editing request",
+    "instruction",
+    "feedback",
+    "greeting",
+    "documentation request",
+    "unknown"
+  ],
+  "cluster_details": [
+    {
+      "category": "information request",
+      "explanation": "The message is asking for clarification and specifics about various concepts related to infrastructure, SSO, and software applications, indicating a request for information or explanation.",
+      "count": 70,
+      "examples": [
+        {
+          "message_id": "67c516aa778e4a03d5c1f2f9",
+          "message_text": "\u8bf7\u5e2e\u6211\u4ecb\u7ecd\u5317\u4eac\u5e02\u56fd\u5bb6\u8865\u8d34\u7b56\u7565\u5417\uff1f",
+          "category": "information request",
+          "explanation": "The message is asking for information about a specific topic (Beijing's subsidy strategy), indicating the sender is seeking knowledge or data."
+        },
+        {
+          "message_id": "67402cbe5dee7fc2b6eedbd5",
+          "message_text": "\u65e5\u672c\u306b\u304a\u3051\u308b\u533b\u85ac\u54c1\u306e\u627f\u8a8d\u3001\u85ac\u4fa1\u53ce\u8f09\u306e\u30b9\u30b1\u30b8\u30e5\u30fc\u30eb\u306b\u306b\u3064\u3044\u3066\u6559\u3048\u3066\u304f\u3060\u3055\u3044\u3002\n\u7279\u306b\u5c02\u9580\u5354\u8b70\u3001\u533b\u85ac\u54c1\u7b2c\u4e8c\u90e8\u4f1a\u3092\u542b\u3081\u3066\u6559\u3048\u3066\u3044\u305f\u3060\u3051\u308b\u3068\u52a9\u304b\u308a\u307e\u3059\u3002",
+          "category": "information request",
+          "explanation": "The message is requesting information about the approval schedule for drugs and pharmaceuticals in Japan, specifically seeking clarification on specialized conferences and committees."
+        },
+        {
+          "message_id": "678a69a1a5780f72a600edc2",
+          "message_text": "do you have any edits for this email",
+          "category": "information request",
+          "explanation": "The message is asking for assistance or feedback, seeking edits for an email, which falls under the broader category of information requests."
+        }
+      ]
+    },
+    {
+      "category": "information request",
+      "explanation": "The message is asking for clarification or details about a specific piece of information (DIA's registration notice), indicating an inquiry rather than a request for action.",
+      "count": 64,
+      "examples": [
+        {
+          "message_id": "67920743a5780f72a6074478",
+          "message_text": "translate in Brasilian \"Update of the IT Support Schedule in Our Office \"",
+          "category": "information request",
+          "explanation": "The message is asking for translation, indicating the sender needs information about a specific topic (IT Support Schedule) in Brazilian Portuguese."
+        },
+        {
+          "message_id": "6737b2d25dee7fc2b6e79aaf",
+          "message_text": "Explain BeiGene manufacturing capacity",
+          "category": "information request",
+          "explanation": "The message is asking for a factual piece of information about BeiGene, suggesting that the user needs data or details."
+        },
+        {
+          "message_id": "67c16bed778e4a03d5bec685",
+          "message_text": "more professional she has experience in line management",
+          "category": "information request",
+          "explanation": "The message is asking for information about a person's experience in line management, indicating a request for factual data or clarification."
+        }
+      ]
+    },
+    {
+      "category": "task request",
+      "explanation": "The message is requesting assistance with a task, specifically asking for help in organizing and highlighting achievements in a deck, suggesting that the requester needs guidance or information on how to complete this task.",
+      "count": 44,
+      "examples": [
+        {
+          "message_id": "67a46dc1a5780f72a616cf2d",
+          "message_text": "packe diese Punkte sinnvolle auf powerpoint slides",
+          "category": "task request",
+          "explanation": "The message is requesting assistance with organizing content into a visually appealing format for PowerPoint slides, indicating a need for help or guidance with a task."
+        },
+        {
+          "message_id": "67bd9018778e4a03d5baad43",
+          "message_text": "I just checked the QA log and found that line 38 and line 40 are the same question. Maybe we can combine them.\nThanks.",
+          "category": "task request",
+          "explanation": "The message is asking for a task-related decision (combining lines in the QA log) and includes a suggestion, indicating a request for assistance or guidance."
+        },
+        {
+          "message_id": "6721cb265dee7fc2b6d54b1d",
+          "message_text": "so I am about to involve in a task with script-powered excel cleaning - python mainly, could you define a assistant prompt - meta prompt for which such individual is highly experienced in first see the things from a wholistic point of view, ie able to see the solution from complex situations - Note that raw data is extremely messy, second, extremely good at writing a easy to understand, modulized code, and write well code explanation at each of the step for other to just able to pick it up by readeing the code, know the scructure of datacleaning especially for excel and python related package to clean the excel script. create such prompt for me",
+          "category": "task request",
+          "explanation": "The message is requesting assistance with a specific task involving script-powered Excel cleaning in Python, indicating a need for guidance and support."
+        }
+      ]
+    },
+    {
+      "category": "technical inquiry",
+      "explanation": "The message is asking for information related to a technical issue, specifically about blank cells reporting 'No', indicating it's a question seeking explanation or assistance with a task in a technical context.",
+      "count": 44,
+      "examples": [
+        {
+          "message_id": "6787b518a5780f72a6fe9e80",
+          "message_text": "which are compatible with ThinkBook Hybrid Tab solution",
+          "category": "technical inquiry",
+          "explanation": "The message is asking for information about compatibility, indicating a technical inquiry related to the ThinkBook Hybrid Tab solution."
+        },
+        {
+          "message_id": "6759f493944256294a9de524",
+          "message_text": "how does one go about identifying data domains within a function to drive domain driven ownership of data?",
+          "category": "technical inquiry",
+          "explanation": "The message is asking for information on a technical topic, specifically about identifying data domains within a function, indicating a need for guidance or explanation."
+        },
+        {
+          "message_id": "679c361ea5780f72a60fdab7",
+          "message_text": "\u3053\u306e\u30b7\u30b9\u30c6\u30e0\u306f\u4ed6\u306eCRM\u306b\u5165\u529b\u3055\u308c\u305f\u60c5\u5831\u3092\u8aad\u307f\u8fbc\u3080\u3053\u3068\u304c\u3067\u304d\u308b\u306e\u304b\uff1f\n\u65e5\u672c\u3067\u7528\u3044\u3066\u3044\u308bCRM\u30c7\u30fc\u30bf\u3068\u3053\u306e\u30b7\u30b9\u30c6\u30e0\u306e\u30c7\u30fc\u30bf\u3092\u7d71\u5408\u3067\u304d\u308b\u306e\u304b\u306b\u8208\u5473\u304c\u3042\u308a\u307e\u3059\u3002",
+          "category": "technical inquiry",
+          "explanation": "The message asks about the compatibility and integration of CRM data between different systems, indicating a technical inquiry or request for information on system integration."
+        }
+      ]
+    },
+    {
+      "category": "informational query",
+      "explanation": "The message appears to be seeking information about the team's accomplishments in 2024, suggesting a query for data or details rather than requesting help with a task or asking for an explanation.",
+      "count": 39,
+      "examples": [
+        {
+          "message_id": "679361aaa5780f72a6087051",
+          "message_text": "Kennst du die m\u00fcndliche Anh\u00f6rung beim Gemeinsamen Bundesausschuss? Falls ja, welche Aspekte f\u00fcr eine gr\u00fcndliche Vorbereitung sollten ber\u00fccksichtigt werden. Liste diese stichpunktartig auf.",
+          "category": "informational query",
+          "explanation": "The message is asking for information about a topic (m\u00fcndliche Anh\u00f6rung beim Gemeinsamen Bundesausschuss) and seeking clarification on specific aspects, indicating an informational query."
+        },
+        {
+          "message_id": "67c81283778e4a03d5c52d4f",
+          "message_text": "Development Imperatives",
+          "category": "informational query",
+          "explanation": "The message is asking for information or clarification on a topic, in this case, 'Development Imperatives', suggesting that the recipient may not be familiar with the concept."
+        },
+        {
+          "message_id": "66fd9a8c2caee701b2690a1f",
+          "message_text": "5 benefits of a change champion network",
+          "category": "informational query",
+          "explanation": "The message is inquiring about the benefits of a change champion network, indicating it's seeking information or knowledge on a specific topic."
+        }
+      ]
+    },
+    {
+      "category": "programming request",
+      "explanation": "This message is a programming request as it appears to be asking for guidance or clarification on how to validate the content of an Excel workbook using Python and openpyxl libraries.",
+      "count": 38,
+      "examples": [
+        {
+          "message_id": "6747caac5b6d916da453917e",
+          "message_text": "import os\nfrom openpyxl import load_workbook\n\ndef validate_workbook(file_path):\n    expected_content = {\n        \"Info\": [\n            \"Principal Investigator:\", \"Protocol Number:\", \"Phase:\",\n            \"Site Name:\", \"Site Number:\", \"Country:\", \"Currency:\",\n            \"Protocol Version:\", \"Contract Version\", \"Site Overhead %:\", \"File Name\"\n        ],\n        \"Procedures\": [\n            \"Procedure Name\", \"Unit Cost / Site Unit Cost\", \"Tab / Cohort\"\n        ],\n        \"Visits\": [\n            \"Tab/Cohort\", \"Visit Name\", \"Amount\"\n        ],\n        \"Invoice_Conditional\": [\n            \"Invoiceable and Conditional\", \"Frequency\", \"Amount\", \"Overhead\", \"Cost Per Unit / Cost (with Overhead)\"\n        ],\n        \"Start-Up & Fixed Fees\": [\n            \"Start-Up Fees and Fixed Fees\", \"Frequency\", \"Amount\", \"Overhead (OH)\",\n            \"Unit Cost with OH\", \"Unit\", \"Total\"\n        ]\n    }\n    \n    errors = []\n\n    workbook = load_workbook(filename=file_path, read_only=True)\n\n    # Check sheet name",
+          "category": "programming request",
+          "explanation": "This message is a programming request as it appears to be asking for guidance or clarification on how to validate the content of an Excel workbook using Python and openpyxl libraries."
+        },
+        {
+          "message_id": "67ca8c22778e4a03d5c7a334",
+          "message_text": "you are a python expert, give me the code which for the excel file, given the name of the excel file which is stored as arg2, read the excel file and print all the value of the all col value like if there are two cols, say Description , Translated, I want it to be the dictionary string mode for each row like for row 1 is {Description:(100mg\u6c49\u5229\u5eb7)\u5229\u59a5\u6614\u5355\u6297\u6ce8\u5c04\u6db2,Translated:(100mg Hanlikang) rituximab injection }",
+          "category": "programming request",
+          "explanation": "The request is for specific code implementation, indicating a task-oriented inquiry about programming assistance."
+        },
+        {
+          "message_id": "67c0d5f3778e4a03d5be21a5",
+          "message_text": "posit connect fastapi call from streamlit app convert response to dataframe add authorization header",
+          "category": "programming request",
+          "explanation": "The message is a concise task or question related to programming, specifically involving integration between FastAPI and Streamlit."
+        }
+      ]
+    },
+    {
+      "category": "medical inquiry",
+      "explanation": "The message is asking for information on the approval status of Rituximab in a specific medical condition (WM) and country (Switzerland), indicating a request for factual information about a medical treatment.",
+      "count": 25,
+      "examples": [
+        {
+          "message_id": "67bc8fbd778e4a03d5b99e0b",
+          "message_text": "Is Rituximab approved in all indications in WM in switzerland?",
+          "category": "medical inquiry",
+          "explanation": "The message is asking for information on the approval status of Rituximab in a specific medical condition (WM) and country (Switzerland), indicating a request for factual information about a medical treatment."
+        },
+        {
+          "message_id": "67bee9c6778e4a03d5bc2410",
+          "message_text": "\u8fd9\u5c5e\u4e8e\u4eba\u5de5\u7edd\u7ecf \u4e48",
+          "category": "medical inquiry",
+          "explanation": "The message is asking for a medical diagnosis or clarification on a specific condition, in this case, \u4eba\u5de5\u7edd\u7ecf (artificial menopause)"
+        },
+        {
+          "message_id": "67bf2057778e4a03d5bc5e65",
+          "message_text": "can lisinopril cause numbness in my arms when lying down",
+          "category": "medical inquiry",
+          "explanation": "The message is asking for information about a potential side effect of the medication lisinopril, indicating a medical inquiry."
+        }
+      ]
+    },
+    {
+      "category": "technical support",
+      "explanation": "The message is a technical request for help with a Power BI visualization, specifically asking for assistance in displaying an image (the SVG chart) which is not showing up.",
+      "count": 24,
+      "examples": [
+        {
+          "message_id": "6763db43944256294aa635d1",
+          "message_text": "not code just return with me the df directly in the table format",
+          "category": "technical support",
+          "explanation": "The message is requesting assistance with data formatting, suggesting a technical issue or task that requires guidance."
+        },
+        {
+          "message_id": "674eb2c75b6d916da4595928",
+          "message_text": "\u628a\u4e0b\u9762\u8fd9\u6bb5power query M scripts \u8f6c\u6362\u6210 synapse\u4e2d\u7684sql\uff1a\nlet\n\u6e90 = Excel.CurrentWorkbook(){[Name=\"IQVIA_MDTR3\"]}[Content],\n\u66f4\u6539\u7684\u7c7b\u578b = Table.TransformColumnTypes(\u6e90,{{\"Code\", Int64.Type}, {\"EAN\", Int64.Type}, {\"Description\", type text}, {\"Brand\", type text}, {\"Group Provedor\", type text}, {\"Provedor\", type text}, {\"CNPJ Provedor\", Int64.Type}, {\"UF Provedor\", type text}, {\"PDV\", type text}, {\"CNPJ\", type text}, {\"Channel Group\", type text}, {\"Sub Channel\", type text}, {\"Market\", type text}, {\"Date\", type datetime}, {\"Quarter\", type text}, {\"Year\", Int64.Type}, {\"Qty\", Int64.Type}, {\"Price PF\", type number}, {\"Value BRL\", type number}}),\n\u5220\u9664\u7684\u5176\u4ed6\u5217 = Table.SelectColumns(\u66f4\u6539\u7684\u7c7b\u578b,{\"Description\", \"Brand\"}),\n\u590d\u5236\u7684\u5217 = Table.DuplicateColumn(\u5220\u9664\u7684\u5176\u4ed6\u5217, \"Description\", \"Description - \u590d\u5236\"),\n\u5220\u9664\u7684\u526f\u672c = Table.Distinct(\u590d\u5236\u7684\u5217),\n\u6309\u5206\u9694\u7b26\u62c6\u5206\u5217 = Table.SplitColumn(\u5220\u9664\u7684\u526f\u672c, \"Description\", Splitter.SplitTextByEachDelimiter({\" \"}, QuoteStyle.Csv, false), {\"Description.1\", \"Description.2\"}),\n\u66f4\u6539\u7684\u7c7b\u578b1 = Table.TransformColumnTypes(\u6309\u5206\u9694\u7b26\u62c6\u5206\u5217,{{\"Descriptio",
+          "category": "technical support",
+          "explanation": "The message is asking for help with converting Power Query M scripts to Synapse SQL, indicating a need for technical assistance or guidance."
+        },
+        {
+          "message_id": "670010e7d4fc0299fef78078",
+          "message_text": "I'd like to be able to create a modified version of this which will take a date range and show the stats of that range",
+          "category": "technical support",
+          "explanation": "The request indicates a need for help or guidance with modifying an existing feature to add a new functionality, suggesting a technical or programming context."
+        }
+      ]
+    },
+    {
+      "category": "translation request",
+      "explanation": "The message is requesting translation of a Japanese phrase ('\u7d4c\u53e3\u6442\u53d6\u53ef\u80fd') into English, suggesting it is asking for help with a task or seeking assistance.",
+      "count": 22,
+      "examples": [
+        {
+          "message_id": "67a2f835a5780f72a6158137",
+          "message_text": "\u4e0b\u8a18\u3092\u30b9\u30e9\u30a4\u30c9\u7528\u306e\u82f1\u8a9e\u306b\u76f4\u3057\u3066\u304f\u3060\u3055\u3044\u3002\nA\u3084B\u306b\u3088\u308a\u305d\u308c\u305e\u308c100\u5186\u3001200\u5186\u58f2\u4e0a\u304c\u3042\u304c\u308b",
+          "category": "translation request",
+          "explanation": "The message is asking for translation assistance, specifically requesting someone to translate a Japanese sentence into English."
+        },
+        {
+          "message_id": "6763a5b4944256294aa608e8",
+          "message_text": "\u4e0b\u8a18\u3092\u30b9\u30e9\u30a4\u30c9\u7528\u306e\u82f1\u8a9e\u306b\u76f4\u3057\u3066\u304f\u3060\u3055\u3044\u3002\n\u7d4c\u53e3\u6442\u53d6\u53ef\u80fd",
+          "category": "translation request",
+          "explanation": "The message is requesting translation of a Japanese phrase ('\u7d4c\u53e3\u6442\u53d6\u53ef\u80fd') into English, suggesting it is asking for help with a task or seeking assistance."
+        },
+        {
+          "message_id": "6765332a944256294aa75a60",
+          "message_text": "can you translate the polished english version to mandarin chinese",
+          "category": "translation request",
+          "explanation": "The message is requesting assistance with translating a piece of text from English to Mandarin Chinese."
+        }
+      ]
+    },
+    {
+      "category": "error report",
+      "explanation": "This message appears to be a technical error report from a database or programming context, providing details about the syntax error and suggesting resources for troubleshooting.",
+      "count": 20,
+      "examples": [
+        {
+          "message_id": "67c7f834778e4a03d5c50a98",
+          "message_text": "AttributeError: module 'lib' has no attribute 'X509_V_FLAG_NOTIFY_POLICY'",
+          "category": "error report",
+          "explanation": "This message is a technical error report, as it describes a specific programming issue with a Python module."
+        },
+        {
+          "message_id": "67af18c5a5780f72a62040bc",
+          "message_text": "An error occurred in the \u2018\u2019 query. Expression.Error: We cannot convert a value of type Binary to type Text.\nDetails:\n    Value=[Binary]\n    Type=[Type]",
+          "category": "error report",
+          "explanation": "This message is about reporting an error encountered while executing a query, providing details of the issue with the value types involved."
+        },
+        {
+          "message_id": "67c5a072778e4a03d5c28509",
+          "message_text": "pget: Batch 2.zip: Login failed: 530 User cannot login: Invalid username/password or not allowed to sign on from this location.\n[ec2-user@ip-10-16-10-197 beigene prod]$ lftp -e \"set xfer:clobber yes; pget -n 8 'Batch 2.zip'; bye\" svc.infra_team.sftp@beigene.moveitcloud.com\nPassword:\npget: Batch 2.zip: Login failed: 530 User cannot login: Invalid username/password or not allowed to sign on from this location.\n[ec2-user@ip-10-16-10-197 beigene prod]$\n\u6709\u4ec0\u4e48\u95ee\u9898\u561b",
+          "category": "error report",
+          "explanation": "The message is a technical error report detailing a login failure and an unsuccessful file transfer, suggesting a troubleshooting or debugging context."
+        }
+      ]
+    },
+    {
+      "category": "data dump",
+      "explanation": "This message appears to be a list of numerical data, possibly from a database or log entry, with various categories and time stamps, suggesting that it is simply a collection of data being shared or reported.",
+      "count": 16,
+      "examples": [
+        {
+          "message_id": "67495a375b6d916da454e2c3",
+          "message_text": "Screening\tC1D1\tC2D1\tC3D1\tC4D1\tC5D1\tC6D1\tC7D1\tC8D1\tC9D1\tC10D1\tC11D1\tC12D1\tC13D1\tC14D1\tC15D1\tC16D1\tC17+D1\tSafety Follow-Up (30D)\tSafety Follow-Up (60D)\tSafety Follow-Up (90D)\tSurvival Follow-Up (Q6M)\t\tUnscheduled Visit\n1,224,302\t1,513,351\t1,513,351\t1,513,351\t1,664,149\t1,513,351\t1,513,351\t1,664,149\t1,513,351\t1,513,351\t1,664,149\t1,513,351\t1,513,351\t1,664,149\t1,513,351\t1,513,351\t1,664,149\t1,513,351\t1,054,909\t234,000\t234,000\t162,000\t\t534,587",
+          "category": "data dump",
+          "explanation": "This message appears to be a list of numerical data, possibly from a database or log entry, with various categories and time stamps, suggesting that it is simply a collection of data being shared or reported."
+        },
+        {
+          "message_id": "6788b2e7a5780f72a6ff75e8",
+          "message_text": "File Name\tTab Name\tIs_CPT_Code\tIs_Baseline_Unit_Cost\tIs_High_Benchmark\tIs_90th_Benchmark\tIs_Site_Unit_Cost\tString_CPT_Code\tString_Baseline_Unit_Cost\tString_High_Benchmark\tString_90th_Benchmark\tString_Site_Unit_Cost\n11417-301_Australia_Internal Negotiation Parameters_FINAL_23Aug2023_Locked.xlsx\tArm A\t1\t1\t1\t1\t1\tCPT Code\tBaseline Unit Cost\tHigh Benchmark\t90th Benchmark\tSite Unit Cost\n11417-301_Australia_Internal Negotiation Parameters_FINAL_23Aug2023_Locked.xlsx\tArm B\t1\t0\t1\t1\t0\tCPT Code\t0\tHigh Benchmark\t90th Benchmark\t0\n11417-301_Australia_Internal Negotiation Parameters_FINAL_23Aug2023_Locked.xlsx\tInvoice\t1\t1\t1\t1\t1\tCPT Code\tBaseline Unit Cost\tHigh Benchmark\t90th Benchmark\tSite Unit Cost\n11417-301_Australia_Internal Negotiation Parameters_FINAL_23Aug2023_Locked.xlsx\tStart-Up & Fixed Fees\t1\t1\t1\t1\t1\tCPT Code\tBaseline Unit Cost\tHigh Benchmark\t90th Benchmark\tSite Unit Cost\n11417-301_Australia_Internal Negotiation Parameters_FINAL_23Aug2023_Locked.xlsx\tTCV - INTERNAL Parameters \t0\t0\t1\t1\t0\t0\t0\t",
+          "category": "data dump",
+          "explanation": "This message appears to be a text-based export or dump of data from an Excel spreadsheet, with various fields and values listed in a tabular format."
+        },
+        {
+          "message_id": "67495ee15b6d916da454e8a6",
+          "message_text": "Screening\tC1D1\tC2D1\tC3D1\tC4D1\tC5D1\tC6D1\tC7D1\tC8D1\tC9D1\tC10D1\tC11D1\tC12D1\tC13D1\tC14D1\tC15D1\tC16D1\tC17+D1\tSafety Follow-Up (30D)\tSafety Follow-Up (60D)\tSafety Follow-Up (90D)\tSurvival Follow-Up (Q6M)\t\tUnscheduled Visit\n1,185,120\t1,285,800\t1,285,800\t1,285,800\t1,435,800\t1,285,800\t1,285,800\t1,435,800\t1,285,800\t1,285,800\t1,435,800\t1,285,800\t1,285,800\t1,435,800\t1,285,800\t1,285,800\t1,435,800\t1,285,800\t1,015,800\t234,000\t234,000\t162,000\t\t498,600",
+          "category": "data dump",
+          "explanation": "The message appears to be a raw data output, listing various categories with their corresponding numbers and time intervals, suggesting that it is a dump of statistical or operational data."
+        }
+      ]
+    },
+    {
+      "category": "business request",
+      "explanation": "The message is a professional inquiry for information, documents, or assistance related to the close-out CSR for a pharmaceutical study, indicating a formal request within a business setting.",
+      "count": 16,
+      "examples": [
+        {
+          "message_id": "676dfd01944256294aaea15e",
+          "message_text": "\u6d77\u5916\u306e\u30b3\u30f3\u30b5\u30eb\u30bf\u30f3\u30c8\u306e\u65b9\u306b\u6765\u5e74\u3001\u6765\u65e5\u3057\u3066\u30c8\u30ec\u30fc\u30cb\u30f3\u30b0\u3092\u3057\u3066\u3082\u3089\u3044\u307e\u3059\u3002\n\u5bbf\u6cca\u624b\u914d\u3092\u3053\u3061\u3089\u3067\u3057\u3066\u3082\u3088\u3044\u306e\u304b\u3001\u4e0b\u8a18\u306e\u30dd\u30a4\u30f3\u30c8\u3092\u542b\u3081\u3066\u3001\u82f1\u8a9e\u306e\u30e1\u30fc\u30eb\u3092\u4f5c\u6210\u3057\u3066\u304f\u3060\u3055\u3044\u3002\n\u30fb\u5e74\u672b\u306e\u304a\u5fd9\u3057\u3044\u3068\u3053\u308d\u3001\u3054\u9023\u7d61\u3057\u3066\u3057\u307e\u3044\u7533\u3057\u8a33\u3054\u3056\u3044\u307e\u305b\u3093\u3002\n\u30fb\u307e\u305f\u3001\u6765\u5e74\u306e4\u670817\u65e518\u65e5\u300121\u65e5\u300122\u65e5\u306b\u65e5\u672c\u3067\u306e\u30ef\u30fc\u30af\u30b7\u30e7\u30c3\u30d7\u3092\u304a\u5f15\u304d\u53d7\u3051\u3044\u305f\u3060\u304d\u3042\u308a\u304c\u3068\u3046\u3054\u3056\u3044\u307e\u3059\u3002\n\u30fb\u65e9\u901f\u3067\u306f\u3054\u3056\u3044\u307e\u3059\u304c\u3001\u6765\u65e5\u6642\u306e\u5bbf\u6cca\u624b\u914d (\u30c1\u30a7\u30c3\u30af\u30a4\u30f34/16\u3001\u30c1\u30a7\u30c3\u30af\u30a2\u30a6\u30c84/23)\u3092BeiGene\u5074\u3067\u6e96\u5099\u3055\u305b\u3066\u3044\u305f\u3060\u304d\u305f\u3044\u3068\u8003\u3048\u3066\u3044\u307e\u3059\u3002\n\u30fb\u6628\u5e74\u306f\u3042\u306a\u305f\u3054\u81ea\u8eab\u3067\u624b\u914d\u3057\u3066\u3044\u305f\u3060\u3044\u305f\u3088\u3046\u3067\u3059\u304c\u3001\u4eca\u56de\u306fBeiGene\u5074\u3067\u624b\u914d\u3055\u305b\u3066\u3044\u305f\u3060\u3044\u3066\u3082\u554f\u984c\u306a\u3044\u3067\u3057\u3087\u3046\u304b\uff1f\n\u30fb\u554f\u984c\u306a\u3051\u308c\u3070\u3001\u4e0a\u8a18\u65e5\u7a0b\u3067\u554f\u984c\u306a\u3044\u3067\u3057\u3087\u3046\u304b\uff1f\n\n\u304a\u5fd9\u3057\u3044\u3068\u306f\u601d\u3044\u307e\u3059\u304c\u3001\u3054\u78ba\u8a8d\u3088\u308d\u3057\u304f\u304a\u9858\u3044\u3044\u305f\u3057\u307e\u3059\u3002",
+          "category": "business request",
+          "explanation": "The message is a polite and professional request for assistance with logistical arrangements (hotel booking) related to a business event, indicating a need for help or guidance."
+        },
+        {
+          "message_id": "672ac4ca5dee7fc2b6dcc8a3",
+          "message_text": "\u4eca\u5f8c\u53d6\u5f15\u3092\u884c\u3046\u533b\u85ac\u54c1\u5378\u306e\u793e\u9577\u3068CEO\u304b\u3089\u3001\u81ea\u793e\u533b\u85ac\u54c1\u304c\u85ac\u4e8b\u5be9\u8b70\u4f1a\u533b\u85ac\u54c1\u7b2c\u4e8c\u90e8\u4f1a\u3092\u901a\u904e\u3057\u305f\u3053\u3068\u306e\u304a\u795d\u3044\u306e\u82b1\u3092\u3044\u305f\u3060\u304d\u307e\u3057\u305f\u3002\u304a\u793c\u306e\u4e01\u5be7\u306a\u30e1\u30fc\u30eb\u3092\u4f5c\u6210\u3057\u3066\u304f\u3060\u3055\u3044",
+          "category": "business request",
+          "explanation": "The message is a formal request for assistance with creating a polite email, indicating a professional and business-like tone."
+        },
+        {
+          "message_id": "6719bd38e81ad5bdda20d3cf",
+          "message_text": "I hope you are doing well.  Please see the attached slide deck to review the proposed Tevimbra main hero campaign image for the APAC market.  The main image has not yet been retouched, as this will be done after we receive your initial approval.\n\nWe request your feedback or approval, by the end of the day Thursday.\n\nThe feedback/approval that we are seeking includes:\n\u2022\tApproval of talent at the head of the table\no\tChanges that can be made, if needed include: hair color, outfit color changes, head swaps, facial expressions\nNote: We can only show the faces of the first 12 primary talent (at the front of the table) and not the extras. The faces of the extras will have to be obstructed so they are unrecognizable, due to talent rights/usage.\n\nWe look forward to your approval or feedback.",
+          "category": "business request",
+          "explanation": "The message is a formal request for feedback or approval on a visual asset, specifically a main hero campaign image for the APAC market, indicating a professional business communication."
+        }
+      ]
+    },
+    {
+      "category": "information request",
+      "explanation": "The message is asking for a summary of a general written structure for summarizing a specific medical topic, CLL, suggesting that the requester needs information or guidance on how to approach writing about this subject.",
+      "count": 15,
+      "examples": [
+        {
+          "message_id": "673bbed55dee7fc2b6eb0da2",
+          "message_text": "You are a medical writer. Summarize a gereral written structure for me base on the given background paragraphs:  Bruton tyrosine kinase (BTK), a member of the non-receptor tyrosine kinases that include BTK/AKT, tyrosine kinase expressed in hepatocellular carcinoma (TEC), interleukin-2-inducible T cell kinase (ITK)/EMT/TSK, and Bone marrow tyrosine kinase gene in Chromosome X protein (BMX)/epithelial and endothelial tyrosine kinase (ETK), is a critical component of the B-cell receptor signaling cascade. The defining features of these kinases is the presence of a pleckstrin homology domain at their N terminus. Bruton tyrosine kinase has a restricted expression in a subset of B-cells and in myeloid cells, and is involved in signaling by B-cell antigen receptor, mast cell Fc\uf065R, interleukin (IL)-5; IL-6 receptor. Naturally occurring mutations of BTK were initially identified in the human immunodeficiency disease X-linked agammaglobulinemia (XLA) and murine X-linked immunodeficiency. The XLA",
+          "category": "information request",
+          "explanation": "The message is requesting information (a summary of a written structure) based on provided background, indicating that the user wants to learn or understand something."
+        },
+        {
+          "message_id": "673b89875dee7fc2b6ead783",
+          "message_text": "You are a medical writer. Summarize a gereral written structure for me base on the given background paragraphs: 1.1.\tBackground Information on Non Small Cell Lung Cancer \nLung cancer is the most common cancer, with approximately 2.21 million new diagnoses and 1.8 million deaths worldwide in 2020, which corresponds to the second highest incidence among cancers and the most common cancer-related mortality (WHO Cancer 2021).  The disease is more common in men than women, representing 16.8% of all cancers in men and 8.8% of all cancers in women.  In China, lung cancer is the leading cause of cancer-related death in both men and women, with an estimated 610,200 deaths and an estimated 733,300 new cases in the year 2015 (Chen et al 2016).  Non-small cell lung cancer (NSCLC) originates from the epithelial cells of the lung and accounts for 80% to 85% of all lung cancers.  There are 3 main histological subtypes of NSCLC, adenocarcinoma, squamous cell carcinoma, and large cell carcinoma, which ",
+          "category": "information request",
+          "explanation": "The user is requesting information on the structure of a summary for a medical text, specifically asking for a general written structure based on the provided background paragraphs."
+        },
+        {
+          "message_id": "673bbcda5dee7fc2b6eb0b8d",
+          "message_text": "You are a medical writer. Summarize a gereral written structure for me base on the given background paragraphs:  1.1\tCurrent Status of Waldenstr\u00f6m\u2019s Macroglobulinemia\nWaldenstr\u00f6m\u2019s macroglobulinemia (WM) is a rare B-cell malignancy, characterized by bone marrow infiltration with monoclonal immunoglobulin M secreting lymphoplasmacytic cells.  The incidence is 5-8 cases per million, with about 1000-1500 new patients diagnosed in the USA annually.  Incidence increases with age with a median age at diagnosis of 70 years for Caucasians, and slightly lower in other ethnic groups. There is a male to female preponderance, and an incidence higher in Caucasians than Africans or Asians (Gertz et al 2000; Gertz et al 2015).  Activating mutations in the MYD88 gene (MYD88MUT), which trigger downstream interleukin-1-receptor associated kinase (IRAK)-mediated nuclear factor -kappa B (NF-\u03baB) signaling (Treon et al 2012), are seen in approximately 90% of cases.  A second set of mutations with prognostic",
+          "category": "information request",
+          "explanation": "The message asks for a summary of the structure of a written piece based on provided background paragraphs, indicating a request for information or assistance with summarization."
+        }
+      ]
+    },
+    {
+      "category": "business inquiry",
+      "explanation": "The message is a formal announcement from a pharmaceutical company about the development and testing of their drug, suggesting they may provide financial support for PD-L1 testing and share data with medical institutions.",
+      "count": 12,
+      "examples": [
+        {
+          "message_id": "675110085b6d916da45b5b57",
+          "message_text": "\uff081\uff09\t\u30d9\u30f3\u30bf\u30caSP263\u306e\u5229\u7528\u306e\u53ef\u80fd\u6027\u306b\u3064\u3044\u3066\n\u672c\u85ac\u306e\u98df\u9053\u764c\u60a3\u8005\u306b\u304a\u3051\u308b\u81e8\u5e8a\u8a66\u9a13\u3067\u306f\u30d9\u30f3\u30bf\u30caSP263\u3092\u7528\u3044\u3066TAP\u6cd5\u3067\u6e2c\u5b9a\u3057\u3066\u3044\u307e\u3059\u3002PD-L1\u767a\u73fe\u7387\u306e10%\u30ab\u30c3\u30c8\u30aa\u30d5\u306b\u3064\u3044\u3066\u306f\u81e8\u5e8a\u6027\u80fd\u8a66\u9a13\u53ca\u3073\u5206\u6790\u6027\u80fd\u6210\u7e3e\u304c\u5f97\u3089\u308c\u3066\u304a\u308a\u307e\u3059\u30021%\u30015%\u30ab\u30c3\u30c8\u30aa\u30d5\u306b\u304a\u3051\u308b\u6709\u52b9\u6027\u30fb\u5b89\u5168\u6027\u306b\u3064\u3044\u3066\u306f\u3001\u89e3\u6790\u8a08\u753b\u3088\u308a\u5f8c\u4ed8\u3051\u89e3\u6790\u3067\u306f\u3042\u308a\u307e\u3059\u304c\u3001\u89e3\u6790\u7d50\u679c\u3092\u7167\u4f1a4\u306e\u56de\u7b54\uff08240617-\u4e8b\u524d001 \u300cPD-L1 \u767a\u73fe\u72b6\u6cc1\u5225\u306e\u6709\u52b9\u6027\u53ca\u3073\u5b89\u5168\u6027\u306b\u3064\u3044\u3066\u300d\u2461\u30012024\u5e747\u67084\u65e5\u63d0\u51fa\u56de\u7b54\u4fee\u6b63\u7248\uff09\u306b\u8a18\u8f09\u3057\u307e\u3057\u305f\u3002\u73fe\u57281%\u30015%\u30ab\u30c3\u30c8\u30aa\u30d5\u306b\u3064\u3044\u3066\u306f\u6027\u80fd\u8a66\u9a13\u3092\u5b9f\u65bd\u4e2d\u30672027\u5e74\u306b\u7d42\u4e86\u4e88\u5b9a\u3067\u3059\u3002\n\u672c\u85ac\u306b\u95a2\u3059\u308b10%\u30ab\u30c3\u30c8\u30aa\u30d5\u306e\u81e8\u5e8a\u6027\u80fd\u8a66\u9a13\u6210\u7e3e\u304c\u5f97\u3089\u308c\u3066\u3044\u308b\u3053\u3068\u304b\u3089\u3001TAP\u6cd5\u306710%\u30ab\u30c3\u30c8\u30aa\u30d5\u306e\u691c\u67fb\u8cbb\u7528\u3092\u5f0a\u793e\u3067\u8ca0\u62c5\u3057\u3001\u533b\u7642\u6a5f\u95a2\u306bPD-L1\u691c\u67fb\u7d50\u679c\u30c7\u30fc\u30bf\u3092\u63d0\u4f9b\u3059\u308b\u3053\u3068\u304c\u53ef\u80fd\u304b\u691c\u8a0e\u3057\u307e\u3057\u305f\u3002",
+          "category": "business inquiry",
+          "explanation": "The message is a formal announcement from a pharmaceutical company about the development and testing of their drug, suggesting they may provide financial support for PD-L1 testing and share data with medical institutions."
+        },
+        {
+          "message_id": "67833ed2944256294ac05a4a",
+          "message_text": "\u4ee5\u4e0b\u306f\u3001\u6d77\u5916\u306e\u696d\u52d9\u4f9d\u983c\u3059\u308b\u30b3\u30f3\u30b5\u30eb\u30bf\u30f3\u30c8\u65b9\u306b\u5951\u7d04\u66f8\u306e\u8abf\u6574\u3092\u884c\u3046\u30e1\u30fc\u30eb\u6587\u7ae0\u3067\u3059\u3002\u30e1\u30fc\u30eb\u7528\u306e\u4e01\u5be7\u306a\u82f1\u8a9e\u306b\u6d17\u7df4\u3001\u5909\u63db\u3057\u3066\u304f\u3060\u3055\u3044\u3002\n\n\u5e73\u7d20\u3088\u308a\u5927\u5909\u304a\u4e16\u8a71\u306b\u306a\u3063\u3066\u304a\u308a\u307e\u3059\u3002\u5951\u7d04\u66f8\u3092\u4f5c\u6210\u3059\u308b\u3046\u3048\u3067\u4e0b\u8a18\u8868\u306e\u3088\u3046\u306atotal estimated cost\u3092\u3054\u7b97\u51fa\u3044\u305f\u3060\u3051\u306a\u3044\u3067\u3057\u3087\u3046\u304b (\u3053\u306e\u8868\u306f\u6628\u5e74\u306e\u5951\u7d04\u3067\u4f5c\u6210\u3057\u3066\u3044\u305f\u3060\u3044\u305f\u8868\u3067\u3059)\uff1f\n\n\u4eca\u56de\u306f\u3001\u3042\u306a\u305f\u306b4\u65e5\u9593\u306eWorkshop\u30b9\u30bf\u30a4\u30eb\u3067brand plan\u4f5c\u6210\u30d7\u30ed\u30bb\u30b9\u304a\u3088\u3073\u4f5c\u6210\u306b\u95a2\u3057\u3066\u30a2\u30c9\u30d0\u30a4\u30b9\u3092\u3044\u305f\u3060\u304d\u305f\u3044\u3068\u8003\u3048\u3066\u3044\u307e\u3059\u3002\u53d6\u308a\u4e0a\u3052\u308b\u30c8\u30d4\u30c3\u30af\u306f\u3001Tislelizumab for HER2-negative gastric cancer\u30922\u65e5\u9593\u3001Zanubrutinib for mantle-cell lymphoma\u30922\u65e5\u9593\u3067\u3059\u3002\n\n\u5bbf\u6cca\u4ee3 (\u671d\u98df\u4ee3\u3092\u542b\u3080)\u306f\u79c1\u305f\u3061\u304c\u624b\u914d\u30fb\u652f\u6255\u3044\u3059\u308b\u306e\u3067\u542b\u3081\u3066\u3044\u305f\u3060\u304f\u5fc5\u8981\u306f\u3042\u308a\u307e\u305b\u3093\u304c\u3001\u822a\u7a7a\u5238\u3092\u542b\u3081\u305f\u4ea4\u901a\u624b\u914d\u306f\u3042\u306a\u305f\u306b\u624b\u914d\u3057\u3066\u3044\u305f\u3060\u304d\u307e\u3059\u306e\u3067\u79c1\u305f\u3061\u306b\u8acb\u6c42\u3057\u3066\u3044\u305f\u3060\u3051\u308c\u3070\u5e78\u3044\u3067\u3059\u3002\n\n\u3042\u306a\u305f\u304b\u3089\u3053\u308c\u3089\u306e\u60c5\u5831\u3092\u3044\u305f\u3060\u3044\u305f\u5f8c\u3001\u5951\u7d04\u624b\u7d9a\u304d\u306b\u9032\u3081\u3055\u308c\u3066\u3044\u305f\u3060\u304d\u307e\u3059\u3002\n\n\u53c2\u8003\u307e\u3067\u306b\u3001\u4e0b\u8a18\u3092\u8cc7\u6599\u3092\u6dfb\u4ed8\u3044\u3066\u304a\u304d\u307e\u3059\u3002\n1. \u6628\u5e74\u306e\u3042\u306a\u305f\u3068\u306e\u5951\u7d04\u66f8\n2. \u73fe\u5728\u3001\u30c9\u30e9\u30d5\u30c8\u4e2d\u306e\u5951\u7d04\u66f8",
+          "category": "business inquiry",
+          "explanation": "The message is a formal request from a company seeking advice and services from a consultant, specifically regarding the creation of a contract, workshop participation, and other logistical arrangements."
+        }
+      ]
+    },
+    {
+      "category": "editing request",
+      "explanation": "The message is requesting help with editing and refining a piece of text, specifically asking for suggestions on how to make it more engaging and impactful.",
+      "count": 11,
+      "examples": [
+        {
+          "message_id": "67c6ccaf778e4a03d5c3ce07",
+          "message_text": "\u6da6\u8272\u4e00\u4e0b\u4f60\u7684\u8fd9\u6bb5\u5316\uff0c\u8ba9\u903b\u8f91\u66f4\u901a\u987a",
+          "category": "editing request",
+          "explanation": "The message is requesting someone to review and improve the clarity and coherence of a passage, suggesting a request for editing assistance."
+        },
+        {
+          "message_id": "67a55b9fa5780f72a617abec",
+          "message_text": "revise the above for BeiGene USA oncology drug development company",
+          "category": "editing request",
+          "explanation": "The message is asking for a revision of text, indicating a need for editorial assistance or correction."
+        },
+        {
+          "message_id": "67c93ed0778e4a03d5c65c99",
+          "message_text": "\u8bf7\u628a\u201c\u65e0\u754c\u534f\u4f5c\uff0c\u51dd\u805a\u5404\u65b9\u667a\u6167\uff0c\u6301\u7eed\u63a8\u8fdb\u4e34\u5e8a\u5f00\u53d1\u7b56\u7565\u548c\u9879\u76ee\u7684\u9ad8\u6548\u6267\u884c\u201d\u8fdb\u884c\u6da6\u8272\uff0c\u4f7f\u5176\u66f4\u52a0\u54cd\u4eae\u751f\u52a8\uff0c\u5177\u6709\u5ba3\u4f20\u529b\u91cf",
+          "category": "editing request",
+          "explanation": "The message is requesting help with editing and refining a piece of text, specifically asking for suggestions on how to make it more engaging and impactful."
+        }
+      ]
+    },
+    {
+      "category": "instruction",
+      "explanation": "The message is a directive or instruction, specifically related to completing tasks or training modules, indicating a request for guidance or completion of an action.",
+      "count": 10,
+      "examples": [
+        {
+          "message_id": "67c670a1778e4a03d5c3550f",
+          "message_text": "modify 'Establish Assays to Monitor LYTAC Degradation'",
+          "category": "instruction",
+          "explanation": "This category is suitable for messages that request or specify actions, modifications, or instructions, as seen in this case where someone asks to modify a task."
+        },
+        {
+          "message_id": "67b55950a5780f72a625b1e4",
+          "message_text": "\u7cbe\u7b80\u4ee5\u4e0b\u8bdd\u672f\uff1a\n\u4e3a\u9632\u6b62\u7f51\u7edc\u4e2d\u65ad\u7b49\u610f\u5916\u56e0\u7d20\u9020\u6210\u6d01\u51c0\u670d\u7ba1\u7406\u7cfb\u7edf\u65e0\u6cd5\u4f7f\u7528\uff0c\u4fdd\u7559\u6d01\u51c0\u670d\u6e05\u6d17\u6574\u7406\u8bb0\u5f55\uff0c",
+          "category": "instruction",
+          "explanation": "This message contains a directive or instruction on how to format or handle certain information, likely part of a set of rules or guidelines for using a system."
+        },
+        {
+          "message_id": "67bfcecd778e4a03d5bd11ab",
+          "message_text": "Successfully complete all on-boarding and routine training modules.",
+          "category": "instruction",
+          "explanation": "The message is a directive or instruction, specifically related to completing tasks or training modules, indicating a request for guidance or completion of an action."
+        }
+      ]
+    },
+    {
+      "category": "feedback",
+      "explanation": "The message is a polite but somewhat negative comment on something, suggesting it could be improved, which is a common type of feedback or criticism.",
+      "count": 9,
+      "examples": [
+        {
+          "message_id": "67654508944256294aa7693b",
+          "message_text": "nicht ganz so \u00fcberschw\u00e4nglich",
+          "category": "feedback",
+          "explanation": "The message is a polite but somewhat negative comment on something, suggesting it could be improved, which is a common type of feedback or criticism."
+        },
+        {
+          "message_id": "670ce1b108d61de8e804597c",
+          "message_text": "make it more concise pls",
+          "category": "feedback",
+          "explanation": "The message is asking for a revision or improvement on something, indicating that it is a request for feedback or guidance."
+        },
+        {
+          "message_id": "671f01fe2512639990dc3b69",
+          "message_text": "\u8fd8\u662f\u957f\u4e86\u70b9\uff0c\u518d\u7b80\u77ed\u4e9b",
+          "category": "feedback",
+          "explanation": "The message is a suggestion for improvement, specifically asking the author to make their writing more concise."
+        }
+      ]
+    },
+    {
+      "category": "greeting",
+      "explanation": "The message is a common way to initiate a conversation, expressing interest in the recipient's well-being and seeking a reciprocal greeting.",
+      "count": 8,
+      "examples": [
+        {
+          "message_id": "673e937d5dee7fc2b6ed7595",
+          "message_text": "Hey morning",
+          "category": "greeting",
+          "explanation": "The message is a casual, informal greeting typically used to start the day, suggesting a friendly and social tone."
+        },
+        {
+          "message_id": "67a95e7ba5780f72a61b07cc",
+          "message_text": "\u3044\u3064\u3082\u30b5\u30dd\u30fc\u30c8",
+          "category": "greeting",
+          "explanation": "The message is a polite and casual greeting, conveying a sense of support or solidarity."
+        },
+        {
+          "message_id": "678db90fa5780f72a603a388",
+          "message_text": "morning",
+          "category": "greeting",
+          "explanation": "The message is a simple greeting, indicating the start of a conversation or day."
+        }
+      ]
+    },
+    {
+      "category": "documentation request",
+      "explanation": "The message requests a documentation paragraph explaining the logic behind creating a data frame, indicating a need for technical writing or documentation assistance.",
+      "count": 7,
+      "examples": [
+        {
+          "message_id": "67bea2d7778e4a03d5bbd3a1",
+          "message_text": "Based on the code below, write a documentation paragraph to describe the logic of the creation of the data frame modality_drugs. Do not \"verbalize\" variable names. Keep them the way they are. The paragraph should be no more than 150 words.\n\nmodality_drugs <- filtered_drugId %>%\n  left_join(\n    drugOrigin\n  ) %>%\n  left_join(\n    drug_moa %>%\n      group_by(drugId) %>%\n      mutate(MechanismsOfAction = paste(sort(unique(directMechanism)), collapse = ';\\n')) %>%\n      distinct(drugId, MechanismsOfAction)\n  ) %>%\n  left_join(\n    drugTherapeuticClasses %>%\n      group_by(drugId) %>%\n      mutate(TherapeuticClassName = paste(sort(unique(therapeuticClassName)), collapse = ';\\n')) %>%\n      distinct(drugId, TherapeuticClassName)\n  ) %>%\n  mutate(Modality = case_when(str_detect(TherapeuticClassName, \"Anticancer, vaccine\") ~ \"Cancer vaccine\",\n                              str_detect(TherapeuticClassName, \"Cellular therapy\") ~ \"Cellular therapy\",\n                              str_detect(Therap",
+          "category": "documentation request",
+          "explanation": "The message requests a documentation paragraph explaining the logic behind creating a data frame, indicating a need for technical writing or documentation assistance."
+        }
+      ]
+    },
+    {
+      "category": "unknown",
+      "explanation": "Could not parse category from response",
+      "count": 6,
+      "examples": [
+        {
+          "message_id": "673657945dee7fc2b6e674a2",
+          "message_text": "prepare detailed company profile for solu therapeutics",
+          "category": "unknown",
+          "explanation": "Could not parse category from response"
+        },
+        {
+          "message_id": "67bc787c778e4a03d5b983ed",
+          "message_text": "\ud55c\uae00\ub85c \ud574\uc11d\ud574\uc918",
+          "category": "unknown",
+          "explanation": "Could not parse category from response"
+        },
+        {
+          "message_id": "67a1ec12a5780f72a6149862",
+          "message_text": "\u00dcbersetze Beschlussfassung",
+          "category": "unknown",
+          "explanation": "Could not parse category from response"
+        }
+      ]
+    }
+  ]
+}

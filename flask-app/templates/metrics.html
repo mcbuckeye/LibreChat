@@ -1,0 +1,1055 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <title>MyGPT Metrics Dashboard</title>
+  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script>
+    // Polyfill for Chart.getChart if not available
+    if (typeof Chart !== 'undefined' && typeof Chart.getChart !== 'function') {
+      Chart.getChart = function(canvas) {
+        try { return canvas._chartInstance || null; }
+        catch (e) { return null; }
+      };
+    }
+    document.addEventListener('DOMContentLoaded', function() {
+      if (typeof Chart === 'undefined') {
+        document.querySelectorAll('.chart-container').forEach(container => {
+          container.innerHTML = `<div class="text-center p-3">Error: Chart.js not loaded.</div>`;
+        });
+      }
+    });
+  </script>
+  <style>
+    :root {
+      --bg-color: #ffffff;
+      --text-color: #333333;
+      --card-bg: #f8f9fa;
+      --card-shadow: rgba(0,0,0,0.1);
+      --card-hover-shadow: rgba(0,0,0,0.15);
+      --metric-value-color: #2c3e50;
+      --metric-label-color: #7f8c8d;
+      --active-bg: #1e3a8a;
+      --active-color: #ffffff;
+      --border-color: #dee2e6;
+    }
+    .dark-mode {
+      --bg-color: #121212;
+      --text-color: #e0e0e0;
+      --card-bg: #1e1e1e;
+      --card-shadow: rgba(0,0,0,0.3);
+      --card-hover-shadow: rgba(0,0,0,0.4);
+      --metric-value-color: #e0e0e0;
+      --metric-label-color: #a0a0a0;
+      --active-bg: #3949ab;
+      --active-color: #ffffff;
+      --border-color: #333333;
+    }
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      transition: background-color 0.3s, color 0.3s;
+    }
+    .chart-container {
+      position: relative;
+      margin: auto;
+      width: 100%;
+      height: 300px;
+      background-color: var(--card-bg);
+      border-radius: 8px;
+      padding: 10px;
+      box-shadow: 0 1px 3px var(--card-shadow);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+    .chart-container canvas {
+      width: 100% !important;
+      height: 100% !important;
+    }
+    .metric-card {
+      background-color: var(--card-bg);
+      border-radius: 8px;
+      padding: 8px;
+      margin-bottom: 10px;
+      box-shadow: 0 2px 4px var(--card-shadow);
+      transition: all 0.3s;
+    }
+    .metric-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px var(--card-hover-shadow);
+    }
+    .metric-card.compact { padding: 6px; }
+    .metric-value {
+      font-size: 1.6em;
+      font-weight: bold;
+      color: var(--metric-value-color);
+    }
+    .metric-label {
+      color: var(--metric-label-color);
+      font-size: 0.8em;
+      margin-top: 0;
+    }
+    .nav-link.active {
+      font-weight: bold;
+      color: var(--active-color) !important;
+      background-color: var(--active-bg);
+      border-radius: 5px;
+    }
+    .time-filter a.active {
+      font-weight: bold;
+      color: var(--active-color) !important;
+      background-color: var(--active-bg);
+      padding: 5px 10px;
+      border-radius: 5px;
+      text-decoration: none;
+    }
+    .time-filter {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 5px;
+      margin-bottom: 15px;
+    }
+    .time-filter a {
+      padding: 5px 10px;
+      border-radius: 5px;
+      text-decoration: none;
+      color: var(--text-color);
+      background-color: var(--card-bg);
+      font-size: 0.9em;
+    }
+    .dashboard-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+    .mode-toggle {
+      cursor: pointer;
+      padding: 5px 10px;
+      border-radius: 5px;
+      background-color: var(--card-bg);
+      color: var(--text-color);
+      border: 1px solid var(--border-color);
+      transition: all 0.2s;
+    }
+    .mode-toggle:hover { background-color: var(--border-color); }
+  </style>
+</head>
+<body>
+  <div class="container-fluid mt-3">
+    <div class="dashboard-header">
+      <h1 class="h3">MyGPT Metrics Dashboard</h1>
+      <button id="toggleMode" class="mode-toggle">Toggle Dark Mode</button>
+    </div>
+    <div class="text-center mb-3">
+      <a href="{{ url_for('reporting_dashboard') }}" class="nav-link d-inline-block">Usage Dashboard</a> |
+      <a href="{{ url_for('metrics_dashboard') }}" class="nav-link d-inline-block active">Metrics Dashboard</a>
+    </div>
+    <div class="time-filter">
+      <a href="{{ url_for('metrics_dashboard', range='last24') }}" class="{{ 'active' if range_code == 'last24' else '' }}">Last 24 Hours</a>
+      <a href="{{ url_for('metrics_dashboard', range='last7') }}" class="{{ 'active' if range_code == 'last7' else '' }}">Last 7 Days</a>
+      <a href="{{ url_for('metrics_dashboard', range='current_month') }}" class="{{ 'active' if range_code == 'current_month' else '' }}">Current Month</a>
+      <a href="{{ url_for('metrics_dashboard', range='last_month') }}" class="{{ 'active' if range_code == 'last_month' else '' }}">Last Month</a>
+      <a href="{{ url_for('metrics_dashboard', range='last30') }}" class="{{ 'active' if range_code == 'last30' else '' }}">Last 30 Days</a>
+      <a href="{{ url_for('metrics_dashboard', range='last60') }}" class="{{ 'active' if range_code == 'last60' else '' }}">Last 60 Days</a>
+      <a href="{{ url_for('metrics_dashboard', range='last90') }}" class="{{ 'active' if range_code == 'last90' else '' }}">Last 90 Days</a>
+      <a href="{{ url_for('metrics_dashboard', range='all_time') }}" class="{{ 'active' if range_code == 'all_time' else '' }}">All Time</a>
+    </div>
+    <p class="text-center small mb-3">
+      <strong>Report Date Range:</strong> {{ start_time.strftime('%Y-%m-%d') }} to {{ end_time.strftime('%Y-%m-%d') }}
+    </p>
+    <div class="card shadow mb-4">
+      <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold">Summary Statistics</h6>
+      </div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table table-bordered">
+            <thead class="thead-dark">
+              <tr>
+                <th></th>
+                <th>Conversations</th>
+                <th>Messages</th>
+                <th>Files</th>
+                <th>File Size (MB)</th>
+                <th>Input Tokens</th>
+                <th>Output Tokens</th>
+                <th>Input Cost ($)</th>
+                <th>Output Cost ($)</th>
+                <th>Total Cost ($)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th>Totals ({{ total_users }} Users)</th>
+                <td>{{ "{:,}".format(totals.conversations|default(0)) }}</td>
+                <td>{{ "{:,}".format(totals.messages|default(0)) }}</td>
+                <td>{{ "{:,}".format(totals.file_count|default(0)) }}</td>
+                <td>{{ "{:,.2f}".format(totals.file_size|default(0)) }}</td>
+                <td>{{ "{:,.0f}".format(totals.input_tokens|default(0)) }}</td>
+                <td>{{ "{:,.0f}".format(totals.output_tokens|default(0)) }}</td>
+                <td>{{ "{:,.2f}".format(totals.input_cost|default(0)) }}</td>
+                <td>{{ "{:,.2f}".format(totals.output_cost|default(0)) }}</td>
+                <td>{{ "{:,.2f}".format(totals.total_cost|default(0)) }}</td>
+              </tr>
+              <tr>
+                <th>Averages</th>
+                <td>{{ "{:,.2f}".format(average_data.conversations|default(0)) }}</td>
+                <td>{{ "{:,.2f}".format(average_data.messages|default(0)) }}</td>
+                <td>{{ "{:,.2f}".format(average_data.file_count|default(0)) }}</td>
+                <td>{{ "{:,.2f}".format(average_data.file_size|default(0)) }}</td>
+                <td>{{ "{:,.0f}".format(average_data.input_tokens|default(0)) }}</td>
+                <td>{{ "{:,.0f}".format(average_data.output_tokens|default(0)) }}</td>
+                <td>{{ "{:,.2f}".format(average_data.input_cost|default(0)) }}</td>
+                <td>{{ "{:,.2f}".format(average_data.output_cost|default(0)) }}</td>
+                <td>{{ "{:,.2f}".format(average_data.total_cost|default(0)) }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <!-- Engagement Metrics -->
+        <div class="row mt-4">
+          <div class="col-md-4 mb-2">
+            <div class="metric-card compact text-center">
+              <div class="metric-value" id="dau">-</div>
+              <div class="metric-label">Daily Active Users</div>
+            </div>
+          </div>
+          <div class="col-md-4 mb-2">
+            <div class="metric-card compact text-center">
+              <div class="metric-value" id="wau">-</div>
+              <div class="metric-label">Weekly Active Users</div>
+            </div>
+          </div>
+          <div class="col-md-4 mb-2">
+            <div class="metric-card compact text-center">
+              <div class="metric-value" id="mau">-</div>
+              <div class="metric-label">Monthly Active Users</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-6">
+        <div class="chart-container">
+          <canvas id="hourlyUsageHistogram"></canvas>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="chart-container">
+          <canvas id="peakUsageChart"></canvas>
+        </div>
+      </div>
+    </div>
+    <!-- Daily Usage Patterns Chart row (moved just above Weekly Usage Patterns) -->
+    <div class="row">
+      <div class="col-md-12">
+        <div class="chart-container">
+          <canvas id="dailyUsageChart"></canvas>
+        </div>
+      </div>
+    </div>
+    <!-- Weekly Usage Patterns Chart row -->
+    <div class="row">
+      <div class="col-md-12">
+        <div class="chart-container">
+          <canvas id="weeklyUsageChart"></canvas>
+        </div>
+      </div>
+    </div>
+    <!-- Monthly Usage Patterns Chart row -->
+    <div class="row">
+      <div class="col-md-12">
+        <div class="chart-container">
+          <canvas id="monthlyUsageChart"></canvas>
+        </div>
+      </div>
+    </div>
+    <!-- Model Usage Distribution and Cost By Model -->
+    <div class="row">
+      <div class="col-md-6">
+        <div class="chart-container">
+          <canvas id="featureUsageChart"></canvas>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="chart-container">
+          <canvas id="costByModelChart"></canvas>
+        </div>
+      </div>
+    </div>
+    <!-- User Recency Histogram -->
+    <div class="row">
+      <div class="col-md-12">
+        <div class="chart-container">
+          <canvas id="userRecencyChart"></canvas>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Messages per Chat Histogram -->
+    <div class="row">
+      <div class="col-md-12">
+        <div class="chart-container">
+          <canvas id="messagesPerChatChart"></canvas>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Messages per Session Histogram -->
+    <div class="row">
+      <div class="col-md-12">
+        <div class="chart-container">
+          <canvas id="messagesPerSessionChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    // Dark mode toggle
+    document.getElementById('toggleMode').addEventListener('click', function() {
+      document.body.classList.toggle('dark-mode');
+      localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
+    });
+    if (localStorage.getItem('darkMode') === 'true') {
+      document.body.classList.add('dark-mode');
+    }
+    // Weekly Usage Patterns Chart
+    function updateWeeklyUsageChart(data) {
+      if (data.insights && data.insights.weekly_usage_data) {
+        const labels = data.insights.weekly_usage_data.map(item => item.week);
+        const messages = data.insights.weekly_usage_data.map(item => item.message_count);
+        const users = data.insights.weekly_usage_data.map(item => item.user_count);
+        createChart('weeklyUsageChart', 'line', {
+          data: {
+            labels: labels,
+            datasets: [
+              {
+                label: 'Messages',
+                data: messages,
+                borderColor: '#4e73df',
+                backgroundColor: '#4e73df',
+                fill: false,
+                tension: 0.1,
+                yAxisID: 'y'
+              },
+              {
+                label: 'Users',
+                data: users,
+                borderColor: '#1cc88a',
+                backgroundColor: '#1cc88a',
+                fill: false,
+                tension: 0.1,
+                yAxisID: 'y1'
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              y: {
+                beginAtZero: true,
+                title: {
+                  display: true,
+                  text: 'Messages'
+                }
+              },
+              y1: {
+                beginAtZero: true,
+                position: 'right',
+                title: {
+                  display: true,
+                  text: 'Users'
+                }
+              }
+            },
+            plugins: { title: { display: true, text: 'Weekly Usage Patterns' } }
+          }
+        });
+      }
+    }
+    // Helper to create charts with error handling
+    function createChart(canvasId, chartType, chartData, chartOptions) {
+      try {
+        const canvas = document.getElementById(canvasId);
+        if (!canvas) return null;
+        if (canvas.width === 0 || canvas.height === 0) {
+          canvas.width = 300;
+          canvas.height = 200;
+        }
+        const ctx = canvas.getContext('2d');
+        try {
+          const existing = Chart.getChart(canvas);
+          if (existing) existing.destroy();
+        } catch(e) {}
+        return new Chart(ctx, {
+          type: chartType,
+          data: chartData.data || chartData,
+          options: chartOptions || chartData.options
+        });
+      } catch (error) {
+        console.error(`Error creating chart '${canvasId}':`, error);
+        return null;
+      }
+    }
+    async function fetchMetrics() {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const currentRange = params.get('range') || 'last30';
+        const response = await fetch(`/metrics?range=${currentRange}`, {
+          credentials: 'same-origin',
+          headers: { 'Accept': 'application/json' }
+        });
+        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+        const data = await response.json();
+        updateDashboard(data);
+      } catch (error) {
+        console.error('Error fetching metrics:', error);
+        document.querySelectorAll('.chart-container').forEach(container => {
+          container.innerHTML = `<div class="text-center p-3">Error loading chart data. Please refresh the page.<br><small>${error.message}</small></div>`;
+        });
+      }
+    }
+    function updateDashboard(data) {
+      // User Recency Histogram
+      if (data.insights && data.insights.user_recency_histogram) {
+        const recencyData = data.insights.user_recency_histogram;
+        const total = recencyData.reduce((a, b) => a + b, 0);
+        
+        // Create labels for days 0-60 and >60
+        const labels = Array.from({ length: 61 }, (_, i) => `${i}`);
+        labels.push('>60');
+        
+        // Calculate cumulative data
+        const cumulativeData = [];
+        let runningTotal = 0;
+        for (let i = 0; i < recencyData.length; i++) {
+          runningTotal += recencyData[i];
+          cumulativeData.push(runningTotal);
+        }
+        
+        // Get statistics
+        const stats = data.insights.user_recency_stats || { mean: 0, median: 0, std_dev: 0 };
+        const statsText = `Mean: ${stats.mean.toFixed(2)}, Median: ${stats.median.toFixed(2)}, StdDev: ${stats.std_dev.toFixed(2)}`;
+        
+        createChart('userRecencyChart', 'bar', {
+          data: {
+            labels: labels,
+            datasets: [
+              {
+                label: 'Users',
+                data: recencyData,
+                backgroundColor: '#36b9cc',
+                borderColor: '#2c9faf',
+                borderWidth: 1
+              },
+              {
+                label: 'Cumulative Users',
+                data: cumulativeData,
+                type: 'line',
+                borderColor: '#e74a3b',
+                backgroundColor: 'rgba(231, 74, 59, 0.1)',
+                borderWidth: 2,
+                fill: false,
+                tension: 0.1,
+                pointRadius: 0,
+                pointHoverRadius: 3,
+                yAxisID: 'y1'
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              x: {
+                title: {
+                  display: true,
+                  text: 'Days Since Last Use'
+                }
+              },
+              y: {
+                beginAtZero: true,
+                title: {
+                  display: true,
+                  text: 'Number of Users'
+                }
+              },
+              y1: {
+                position: 'right',
+                beginAtZero: true,
+                title: {
+                  display: true,
+                  text: 'Cumulative Users'
+                },
+                grid: {
+                  drawOnChartArea: false
+                },
+                max: total // Set max to total users
+              }
+            },
+            plugins: {
+              title: {
+                display: true,
+                text: [
+                  'User Recency Distribution',
+                  `Mean: ${data.insights.user_recency_stats?.mean.toFixed(2) || '0.00'}, Median: ${data.insights.user_recency_stats?.median.toFixed(2) || '0.00'}, StdDev: ${data.insights.user_recency_stats?.std_dev.toFixed(2) || '0.00'}`
+                ]
+              },
+              tooltip: {
+                mode: 'index',
+                intersect: false,
+                callbacks: {
+                  title: function(context) {
+                    // Get the day from the x-axis label
+                    const day = context[0].label;
+                    return `Days Since Last Use: ${day}`;
+                  },
+                  label: function(context) {
+                    const datasetLabel = context.dataset.label;
+                    const value = context.raw;
+                    
+                    if (datasetLabel === 'Users') {
+                      const perc = total ? ((value / total) * 100).toFixed(2) : 0;
+                      return `Users: ${value} (${perc}%)`;
+                    } else if (datasetLabel === 'Cumulative Users') {
+                      const cumPerc = total ? ((value / total) * 100).toFixed(2) : 0;
+                      return `Cumulative Users: ${value} (${cumPerc}%)`;
+                    }
+                    return `${datasetLabel}: ${value}`;
+                  }
+                }
+              }
+            }
+          }
+        });
+      }
+      // Update engagement KPIs with rounding to 2 decimals
+      if (data.engagement) {
+        document.getElementById('dau').textContent = data.engagement.DAU !== undefined ? Number(data.engagement.DAU).toFixed(2) : '-';
+        document.getElementById('wau').textContent = data.engagement.WAU !== undefined ? Number(data.engagement.WAU).toFixed(2) : '-';
+        document.getElementById('mau').textContent = data.engagement.MAU !== undefined ? Number(data.engagement.MAU).toFixed(2) : '-';
+      }
+      // Hourly Usage Histogram
+      if (data.insights && data.insights.hourly_usage) {
+        const labels = Array.from({ length: 24 }, (_, i) => `${i}:00`);
+        const hourlyData = data.insights.hourly_usage;
+        const total = hourlyData.reduce((a, b) => a + b, 0);
+        createChart('hourlyUsageHistogram', 'bar', {
+          data: {
+            labels: labels,
+            datasets: [
+              {
+                label: 'Messages',
+                data: hourlyData,
+                backgroundColor: '#4e73df',
+                borderColor: '#3c5ec1',
+                borderWidth: 1
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: { y: { beginAtZero: true } },
+            plugins: {
+              title: { display: true, text: 'Hourly Usage Distribution' },
+              tooltip: {
+                callbacks: {
+                  label: function(context) {
+                    const value = context.raw;
+                    const perc = total ? ((value / total) * 100).toFixed(1) : 0;
+                    return `Messages: ${value} (${perc}%)`;
+                  }
+                }
+              }
+            }
+          }
+        });
+      }
+      // Peak Usage Chart
+      if (data.insights && data.insights.peak_usage) {
+        const labels = data.insights.peak_usage.map(item => `${item.day} ${item.hour}:00`);
+        const counts = data.insights.peak_usage.map(item => item.count);
+        createChart('peakUsageChart', 'bar', {
+          data: {
+            labels: labels,
+            datasets: [
+              {
+                label: 'Peak Usage',
+                data: counts,
+                backgroundColor: '#f6c23e',
+                borderColor: '#dda20a',
+                borderWidth: 1
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: { y: { beginAtZero: true } },
+            plugins: { title: { display: true, text: 'Top 10 Peak Usage Times' } }
+          }
+        });
+      }
+      // Weekly Usage Patterns Chart
+      updateWeeklyUsageChart(data);
+      // Daily Usage Patterns Chart
+      if (data.insights && data.insights.daily_usage_data) {
+        const labels = data.insights.daily_usage_data.map(item => item.date);
+        const messages = data.insights.daily_usage_data.map(item => item.message_count);
+        const users = data.insights.daily_usage_data.map(item => item.user_count);
+        createChart('dailyUsageChart', 'line', {
+          data: {
+            labels: labels,
+            datasets: [
+              {
+                label: 'Messages',
+                data: messages,
+                borderColor: '#4e73df',
+                backgroundColor: '#4e73df',
+                fill: false,
+                tension: 0.1,
+                yAxisID: 'y'
+              },
+              {
+                label: 'Users',
+                data: users,
+                borderColor: '#1cc88a',
+                backgroundColor: '#1cc88a',
+                fill: false,
+                tension: 0.1,
+                yAxisID: 'y1'
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              y: {
+                beginAtZero: true,
+                title: { display: true, text: 'Messages' }
+              },
+              y1: {
+                beginAtZero: true,
+                position: 'right',
+                title: { display: true, text: 'Users' }
+              }
+            },
+            plugins: { title: { display: true, text: 'Daily Usage Patterns' } }
+          }
+        });
+      }
+      // Monthly Usage Patterns Chart (last 12 months)
+      if (data.insights && data.insights.monthly_usage_data) {
+        const labels = data.insights.monthly_usage_data.map(item => item.month);
+        const messages = data.insights.monthly_usage_data.map(item => item.message_count);
+        const users = data.insights.monthly_usage_data.map(item => item.user_count);
+        createChart('monthlyUsageChart', 'line', {
+          data: {
+            labels: labels,
+            datasets: [
+              {
+                label: 'Messages',
+                data: messages,
+                borderColor: '#4e73df',
+                backgroundColor: '#4e73df',
+                fill: false,
+                tension: 0.1,
+                yAxisID: 'y'
+              },
+              {
+                label: 'Unique Users',
+                data: users,
+                borderColor: '#1cc88a',
+                backgroundColor: '#1cc88a',
+                fill: false,
+                tension: 0.1,
+                yAxisID: 'y1'
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              y: {
+                beginAtZero: true,
+                title: { display: true, text: 'Messages' }
+              },
+              y1: {
+                beginAtZero: true,
+                position: 'right',
+                title: { display: true, text: 'Unique Users' }
+              }
+            },
+            plugins: { title: { display: true, text: 'Monthly Usage Patterns' } }
+          }
+        });
+      }
+      // Model Usage Distribution Chart with percentage tooltip
+      if (data.behavior_trends && data.behavior_trends.model_usage) {
+        const sorted = [...data.behavior_trends.model_usage].sort((a, b) => b.usage_count - a.usage_count);
+        const top = sorted.slice(0, 5);
+        const labels = top.map(item => item._id || 'Unknown');
+        const counts = top.map(item => item.usage_count || 0);
+        createChart('featureUsageChart', 'doughnut', {
+          data: {
+            labels: labels,
+            datasets: [
+              {
+                data: counts,
+                backgroundColor: ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b']
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              title: { display: true, text: 'Model Usage Distribution' },
+              legend: { position: 'right' },
+              tooltip: {
+                callbacks: {
+                  label: function(context) {
+                    let label = context.label || '';
+                    let value = context.parsed;
+                    let dataset = context.chart.data.datasets[context.datasetIndex];
+                    let total = dataset.data.reduce((a, b) => a + b, 0);
+                    let percentage = total ? ((value / total) * 100).toFixed(2) : 0;
+                    return label + ': ' + value + ' (' + percentage + '%)';
+                  }
+                }
+              }
+            }
+          }
+        });
+      }
+      // Messages per Chat Histogram
+      if (data.insights && data.insights.messages_per_chat_histogram) {
+        const messagesPerChatData = data.insights.messages_per_chat_histogram;
+        const total = messagesPerChatData.reduce((a, b) => a + b, 0);
+        
+        // Create labels for counts 0-20 and >20
+        const labels = Array.from({ length: 21 }, (_, i) => `${i}`);
+        labels.push('>20');
+        
+        // Calculate cumulative data
+        const cumulativeData = [];
+        let runningTotal = 0;
+        for (let i = 0; i < messagesPerChatData.length; i++) {
+          runningTotal += messagesPerChatData[i];
+          cumulativeData.push(runningTotal);
+        }
+        
+        createChart('messagesPerChatChart', 'bar', {
+          data: {
+            labels: labels,
+            datasets: [
+              {
+                label: 'Chats',
+                data: messagesPerChatData,
+                backgroundColor: '#1cc88a',
+                borderColor: '#169b6b',
+                borderWidth: 1
+              },
+              {
+                label: 'Cumulative Chats',
+                data: cumulativeData,
+                type: 'line',
+                borderColor: '#4e73df',
+                backgroundColor: 'rgba(78, 115, 223, 0.1)',
+                borderWidth: 2,
+                fill: false,
+                tension: 0.1,
+                pointRadius: 0,
+                pointHoverRadius: 3,
+                yAxisID: 'y1'
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              x: {
+                title: {
+                  display: true,
+                  text: 'Messages per Chat'
+                }
+              },
+              y: {
+                beginAtZero: true,
+                title: {
+                  display: true,
+                  text: 'Number of Chats'
+                }
+              },
+              y1: {
+                position: 'right',
+                beginAtZero: true,
+                title: {
+                  display: true,
+                  text: 'Cumulative Chats'
+                },
+                grid: {
+                  drawOnChartArea: false
+                },
+                max: total // Set max to total chats
+              }
+            },
+            plugins: {
+              title: {
+                display: true,
+                text: [
+                  'Messages per Chat Distribution',
+                  `Mean: ${data.insights.messages_per_chat_stats?.mean.toFixed(2) || '0.00'}, Median: ${data.insights.messages_per_chat_stats?.median.toFixed(2) || '0.00'}, StdDev: ${data.insights.messages_per_chat_stats?.std_dev.toFixed(2) || '0.00'}`
+                ]
+              },
+              tooltip: {
+                mode: 'index',
+                intersect: false,
+                callbacks: {
+                  title: function(context) {
+                    const count = context[0].label;
+                    return `Messages per Chat: ${count}`;
+                  },
+                  label: function(context) {
+                    const datasetLabel = context.dataset.label;
+                    const value = context.raw;
+                    
+                    if (datasetLabel === 'Chats') {
+                      const perc = total ? ((value / total) * 100).toFixed(2) : 0;
+                      return `Chats: ${value} (${perc}%)`;
+                    } else if (datasetLabel === 'Cumulative Chats') {
+                      const cumPerc = total ? ((value / total) * 100).toFixed(2) : 0;
+                      return `Cumulative Chats: ${value} (${cumPerc}%)`;
+                    }
+                    return `${datasetLabel}: ${value}`;
+                  }
+                }
+              }
+            }
+          }
+        });
+      }
+      
+      // Messages per Session Histogram
+      if (data.insights && data.insights.messages_per_session_histogram) {
+        const messagesPerSessionData = data.insights.messages_per_session_histogram;
+        const total = messagesPerSessionData.reduce((a, b) => a + b, 0);
+        
+        // Create labels for counts 0-20 and >20
+        const labels = Array.from({ length: 21 }, (_, i) => `${i}`);
+        labels.push('>20');
+        
+        // Calculate cumulative data
+        const cumulativeData = [];
+        let runningTotal = 0;
+        for (let i = 0; i < messagesPerSessionData.length; i++) {
+          runningTotal += messagesPerSessionData[i];
+          cumulativeData.push(runningTotal);
+        }
+        
+        createChart('messagesPerSessionChart', 'bar', {
+          data: {
+            labels: labels,
+            datasets: [
+              {
+                label: 'Sessions',
+                data: messagesPerSessionData,
+                backgroundColor: '#f6c23e',
+                borderColor: '#dda20a',
+                borderWidth: 1
+              },
+              {
+                label: 'Cumulative Sessions',
+                data: cumulativeData,
+                type: 'line',
+                borderColor: '#e74a3b',
+                backgroundColor: 'rgba(231, 74, 59, 0.1)',
+                borderWidth: 2,
+                fill: false,
+                tension: 0.1,
+                pointRadius: 0,
+                pointHoverRadius: 3,
+                yAxisID: 'y1'
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              x: {
+                title: {
+                  display: true,
+                  text: 'Messages per Session'
+                }
+              },
+              y: {
+                beginAtZero: true,
+                title: {
+                  display: true,
+                  text: 'Number of Sessions'
+                }
+              },
+              y1: {
+                position: 'right',
+                beginAtZero: true,
+                title: {
+                  display: true,
+                  text: 'Cumulative Sessions'
+                },
+                grid: {
+                  drawOnChartArea: false
+                },
+                max: total // Set max to total sessions
+              }
+            },
+            plugins: {
+              title: {
+                display: true,
+                text: [
+                  'Messages per Session Distribution (30-min inactivity threshold)',
+                  `Mean: ${data.insights.messages_per_session_stats?.mean.toFixed(2) || '0.00'}, Median: ${data.insights.messages_per_session_stats?.median.toFixed(2) || '0.00'}, StdDev: ${data.insights.messages_per_session_stats?.std_dev.toFixed(2) || '0.00'}`
+                ]
+              },
+              tooltip: {
+                mode: 'index',
+                intersect: false,
+                callbacks: {
+                  title: function(context) {
+                    const count = context[0].label;
+                    return `Messages per Session: ${count}`;
+                  },
+                  label: function(context) {
+                    const datasetLabel = context.dataset.label;
+                    const value = context.raw;
+                    
+                    if (datasetLabel === 'Sessions') {
+                      const perc = total ? ((value / total) * 100).toFixed(2) : 0;
+                      return `Sessions: ${value} (${perc}%)`;
+                    } else if (datasetLabel === 'Cumulative Sessions') {
+                      const cumPerc = total ? ((value / total) * 100).toFixed(2) : 0;
+                      return `Cumulative Sessions: ${value} (${cumPerc}%)`;
+                    }
+                    return `${datasetLabel}: ${value}`;
+                  }
+                }
+              }
+            }
+          }
+        });
+      }
+      
+      // Cost by Model Chart
+      if (data.behavior_trends && Array.isArray(data.behavior_trends.cost_by_model)) {
+        const costData = data.behavior_trends.cost_by_model;
+        if (costData.length > 0) {
+          const sortedCosts = [...costData].sort((a, b) => b.total_cost - a.total_cost);
+          const topCosts = sortedCosts.slice(0, 5);
+          
+          // Calculate total cost
+          const totalCost = sortedCosts.reduce((sum, item) => sum + (parseFloat(item.total_cost) || 0), 0);
+          
+          // Use only model costs for the chart
+          const labels = topCosts.map(item => item._id || 'Unknown');
+          const costs = topCosts.map(item => parseFloat(item.total_cost.toFixed(2)) || 0);
+          const backgroundColors = Array(topCosts.length).fill('#e74a3b');
+          const borderColors = Array(topCosts.length).fill('#be3e32');
+          createChart('costByModelChart', 'bar', {
+            data: {
+              labels: labels,
+              datasets: [
+                {
+                  label: 'Cost ($)',
+                  data: costs,
+                  backgroundColor: backgroundColors,
+                  borderColor: borderColors,
+                  borderWidth: 1
+                }
+              ]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              scales: {
+                y: {
+                  beginAtZero: true,
+                  ticks: { callback: value => '$' + value.toFixed(2) }
+                }
+              },
+              plugins: { 
+                title: { display: true, text: `Cost by Model (Total: $${totalCost.toFixed(2)})` },
+                tooltip: {
+                  callbacks: {
+                    label: function(context) {
+                      let label = context.dataset.label || '';
+                      let value = context.parsed.y;
+                      let dataset = context.chart.data.datasets[context.datasetIndex];
+                      let total = dataset.data.reduce((a, b) => a + b, 0);
+                      let percentage = total ? ((value / total) * 100).toFixed(2) : 0;
+                      return `${label}: $${value.toFixed(2)} (${percentage}%)`;
+                    }
+                  }
+                }
+              }
+            }
+          });
+        } else {
+          // If no cost data is available, display an empty chart with a label
+          createChart('costByModelChart', 'bar', {
+            data: {
+              labels: ['No Data'],
+              datasets: [
+                {
+                  label: 'Cost ($)',
+                  data: [0],
+                  backgroundColor: ['#e74a3b'],
+                  borderColor: ['#be3e32'],
+                  borderWidth: 1
+                }
+              ]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              scales: {
+                y: {
+                  beginAtZero: true,
+                  ticks: { callback: value => '$' + value.toFixed(2) }
+                }
+              },
+              plugins: { 
+                title: { display: true, text: 'Cost by Model' },
+                tooltip: {
+                  callbacks: {
+                    label: function(context) {
+                      let label = context.dataset.label || '';
+                      let value = context.parsed.y;
+                      let dataset = context.chart.data.datasets[context.datasetIndex];
+                      let total = dataset.data.reduce((a, b) => a + b, 0);
+                      let percentage = total ? ((value / total) * 100).toFixed(2) : 0;
+                      return `${label}: $${value.toFixed(2)} (${percentage}%)`;
+                    }
+                  }
+                }
+              }
+            }
+          });
+        }
+      }
+    }
+    document.addEventListener('DOMContentLoaded', fetchMetrics);
+  </script>
+</body>
+</html>

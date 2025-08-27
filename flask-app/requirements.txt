@@ -1,0 +1,9 @@
+Flask
+pymongo
+flask-httpauth
+python-dateutil
+python-dotenv
+numpy
+requests
+tabulate
+scikit-learn

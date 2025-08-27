@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="theme-color" content="#171717" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="description" content="MyGPT - everyday AI chatbot for everyone!" />
+    <title>MyGPT</title>
+    <link rel="shortcut icon" href="#" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png" />
+    <link rel="apple-touch-icon" href="/assets/apple-touch-icon-180x180.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      html
+      body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+      }
+    </style>
+    <script>
+      const theme = localStorage.getItem('color-theme');
+      const loadingContainerStyle = document.createElement('style');
+      let backgroundColor;
+
+      if (theme === 'dark') {
+        backgroundColor = '#0d0d0d';
+      } else if (theme === 'light') {
+        backgroundColor = '#ffffff';
+      } else if (theme === 'system') {
+        const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        backgroundColor = prefersDarkScheme ? '#0d0d0d' : '#ffffff';
+      } else {
+        backgroundColor = '#ffffff';
+      }
+
+      loadingContainerStyle.innerHTML = `
+        #loading-container {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          height: 100vh;
+          background-color: ${backgroundColor};
+        }
+      `;
+      document.head.appendChild(loadingContainerStyle);
+    </script>
+    <!-- Add our custom privacy notice script -->
+    <script>
+      // This script injects a data privacy notice right after the "Welcome back" heading
+      document.addEventListener('DOMContentLoaded', function() {
+        // Function to check if we're on the login page
+        function isLoginPage() {
+          return window.location.pathname.includes('/login');
+        }
+
+        // Function to inject the privacy notice
+        function injectPrivacyNotice() {
+          // Check if we're on the login page
+          if (!isLoginPage()) return;
+          
+          // Wait for the Welcome back heading to be rendered
+          const checkInterval = setInterval(function() {
+            // Look for the Welcome back heading
+            const welcomeHeading = Array.from(document.querySelectorAll('h1, h2, h3, h4, h5, h6, div')).find(el => 
+              el.textContent && el.textContent.trim() === 'Welcome back'
+            );
+            
+            if (welcomeHeading) {
+              clearInterval(checkInterval);
+              
+              // Create the privacy notice element
+              const privacyNotice = document.createElement('div');
+              privacyNotice.className = 'mb-4 mt-2 rounded-md border border-yellow-500 bg-yellow-50 p-3 text-sm text-gray-800 dark:border-yellow-600 dark:bg-yellow-900/30 dark:text-gray-200';
+              privacyNotice.style.width = '100%'; // Ensure it takes full width
+              privacyNotice.style.display = 'block'; // Force block display
+              privacyNotice.style.marginTop = '1rem'; // Add margin at the top
+              privacyNotice.style.marginBottom = '1rem'; // Add margin at the bottom
+              privacyNotice.innerHTML = `
+                <p class="font-semibold">⚠️ Important Data Privacy Notice</p>
+                <p class="mt-1">
+                  Please do not upload, enter, or paste any patient information or other personal, confidential, or private data into this AI system. This chatbot is designed for general internal use and is not approved for handling protected health information (PHI) or any data subject to privacy regulations such as HIPAA, GDPR, or similar frameworks. By continuing, you acknowledge your responsibility to comply with BeiGene's data privacy and information security policies.
+                </p>
+              `;
+              
+              // Insert the privacy notice after the Welcome back heading
+              welcomeHeading.parentNode.insertBefore(privacyNotice, welcomeHeading.nextSibling);
+            }
+          }, 500); // Check every 500ms
+        }
+
+        // Run the injection function
+        injectPrivacyNotice();
+      });
+    </script>
+    <script type="module" crossorigin src="/assets/index.C_dJDCVV.js"></script>
+    <link rel="modulepreload" crossorigin href="/assets/markdown_highlight.CfUfDHeH.js">
+    <link rel="modulepreload" crossorigin href="/assets/markdown_large.DH79QO1b.js">
+    <link rel="modulepreload" crossorigin href="/assets/vendor.B1xB2NWu.js">
+    <link rel="modulepreload" crossorigin href="/assets/locales.Jtv8bEcO.js">
+    <link rel="modulepreload" crossorigin href="/assets/radix-ui.QtN4BiSn.js">
+    <link rel="modulepreload" crossorigin href="/assets/tanstack-vendor.B2AD3WdN.js">
+    <link rel="modulepreload" crossorigin href="/assets/framer-motion.Dtu7rpX9.js">
+    <link rel="modulepreload" crossorigin href="/assets/headlessui.DgKlc1KN.js">
+    <link rel="stylesheet" crossorigin href="/assets/index.DNzYTKH6.css">
+  <link rel="manifest" href="/manifest.webmanifest" crossorigin="use-credentials"><script id="vite-plugin-pwa:register-sw" src="/registerSW.js"></script></head>
+  <body>
+    <div id="root">
+      <div id="loading-container"></div>
+    </div>
+  </body>
+</html>

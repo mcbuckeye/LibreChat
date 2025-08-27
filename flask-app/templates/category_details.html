@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ category_name }} - Category Details</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .card {
+            margin-bottom: 20px;
+        }
+        .message-card {
+            margin-bottom: 15px;
+        }
+        .message-text {
+            white-space: pre-wrap;
+        }
+        .back-link {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-4">
+        <div class="back-link">
+            <a href="{{ url_for('categories_dashboard') }}" class="btn btn-outline-secondary">&larr; Back to Categories Dashboard</a>
+        </div>
+        
+        <h1 class="mb-4">Category: {{ category_name }}</h1>
+        <p class="lead">Showing all {{ category_count }} messages in this category</p>
+        
+        <div class="row">
+            <div class="col-12">
+                {% for message in messages %}
+                <div class="card message-card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span>Message ID: {{ message.id[:8] }}...</span>
+                        <span class="badge bg-primary">Confidence: {{ "%.2f"|format(message.confidence) }}</span>
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text message-text">{{ message.message_text }}</p>
+                        <p class="text-muted small">Processed at: {{ message.processed_at }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</body>
+</html>
