@@ -1,6 +1,5 @@
 import { useEffect, useMemo } from 'react';
 import { Capabilities } from 'librechat-data-provider';
-import type { AssistantsEndpoint } from 'librechat-data-provider';
 import { useFormContext, Controller, useWatch } from 'react-hook-form';
 import {
   Checkbox,
@@ -10,8 +9,9 @@ import {
   HoverCardTrigger,
   CircleHelpIcon,
 } from '@librechat/client';
-import OptionHover from '~/components/SidePanel/Parameters/OptionHover';
+import type { AssistantsEndpoint } from 'librechat-data-provider';
 import type { AssistantForm } from '~/common';
+import OptionHover from '~/components/SidePanel/Parameters/OptionHover';
 import { useLocalize } from '~/hooks';
 import { ESide } from '~/common';
 import { cn } from '~/utils';
@@ -30,7 +30,7 @@ export default function Retrieval({
   const model = useWatch({ control, name: 'model' });
   const assistant = useWatch({ control, name: 'assistant' });
 
-  const vectorStores = useMemo(() => {
+  const _vectorStores = useMemo(() => {
     if (typeof assistant === 'string') {
       return [];
     }
@@ -60,11 +60,13 @@ export default function Retrieval({
                 onCheckedChange={field.onChange}
                 className="relative float-left mr-2 inline-flex h-4 w-4 cursor-pointer"
                 value={field.value.toString()}
+                aria-labelledby={Capabilities.retrieval}
               />
             )}
           />
           <div className="flex items-center space-x-2">
             <label
+              id={Capabilities.retrieval}
               className={cn(
                 'form-check-label text-token-text-primary w-full select-none',
                 isDisabled ? 'cursor-no-drop opacity-50' : 'cursor-pointer',

@@ -1,30 +1,44 @@
-import { useCallback } from 'react';
-import { useToastContext, TooltipAnchor, ListeningIcon, Spinner } from '@librechat/client';
-import { useLocalize, useSpeechToText } from '~/hooks';
+import { memo, useCallback, useEffect, useRef } from 'react';
+import { MicOff } from 'lucide-react';
+import { useRecoilValue } from 'recoil';
+import {
+  IconButton,
+  useToastContext,
+  TooltipAnchor,
+  ListeningIcon,
+  Spinner,
+} from '@librechat/client';
+import { useLocalize, useSpeechToText, useGetAudioSettings } from '~/hooks';
+import { globalAudioId, type TAskFunction } from '~/common';
 import { useChatFormContext } from '~/Providers';
-import { globalAudioId } from '~/common';
-import { cn } from '~/utils';
+import store from '~/store';
 
-export default function AudioRecorder({
+const isExternalSTT = (speechToTextEndpoint: string) => speechToTextEndpoint === 'external';
+export default memo(function AudioRecorder({
   disabled,
   ask,
   methods,
-  textAreaRef,
   isSubmitting,
 }: {
   disabled: boolean;
-  ask: (data: { text: string }) => void;
+  ask: TAskFunction;
   methods: ReturnType<typeof useChatFormContext>;
-  textAreaRef: React.RefObject<HTMLTextAreaElement>;
   isSubmitting: boolean;
 }) {
-  const { setValue, reset } = methods;
+  const { setValue, reset, getValues } = methods;
   const localize = useLocalize();
   const { showToast } = useToastContext();
+  const { speechToTextEndpoint } = useGetAudioSettings();
+  const speechSettingsInitialized = useRecoilValue(store.speechSettingsInitialized);
+  const recorderDisabled = disabled || !speechSettingsInitialized;
+
+  const existingTextRef = useRef<string>('');
+  const isSubmittingRef = useRef(isSubmitting);
+  isSubmittingRef.current = isSubmitting;
 
   const onTranscriptionComplete = useCallback(
     (text: string) => {
-      if (isSubmitting) {
+      if (isSubmittingRef.current) {
         showToast({
           message: localize('com_ui_speech_while_submitting'),
           status: 'error',
@@ -37,20 +51,37 @@ export default function AudioRecorder({
           console.log('Unmuting global audio');
           globalAudio.muted = false;
         }
-        ask({ text });
+        /** For external STT, append existing text to the transcription */
+        const finalText =
+          isExternalSTT(speechToTextEndpoint) && existingTextRef.current
+            ? `${existingTextRef.current} ${text}`
+            : text;
+        const submitted = ask({ text: finalText });
+        if (submitted === false) {
+          return;
+        }
         reset({ text: '' });
+        existingTextRef.current = '';
       }
     },
-    [ask, reset, showToast, localize, isSubmitting],
+    [ask, reset, showToast, localize, speechToTextEndpoint],
   );
 
   const setText = useCallback(
     (text: string) => {
-      setValue('text', text, {
+      let newText = text;
+      if (isExternalSTT(speechToTextEndpoint)) {
+        /** For external STT, the text comes as a complete transcription, so append to existing */
+        newText = existingTextRef.current ? `${existingTextRef.current} ${text}` : text;
+      } else {
+        /** For browser STT, the transcript is cumulative, so we only need to prepend the existing text once */
+        newText = existingTextRef.current ? `${existingTextRef.current} ${text}` : text;
+      }
+      setValue('text', newText, {
         shouldValidate: true,
       });
     },
-    [setValue],
+    [setValue, speechToTextEndpoint],
   );
 
   const { isListening, isLoading, startRecording, stopRecording } = useSpeechToText(
@@ -58,43 +89,67 @@ export default function AudioRecorder({
     onTranscriptionComplete,
   );
 
-  if (!textAreaRef.current) {
-    return null;
-  }
+  const handleStartRecording = useCallback(() => {
+    existingTextRef.current = getValues('text') || '';
+    startRecording();
+  }, [getValues, startRecording]);
 
-  const handleStartRecording = async () => startRecording();
+  const handleStopRecording = useCallback(() => {
+    stopRecording();
+    /** For browser STT, clear the reference since text was already being updated */
+    if (!isExternalSTT(speechToTextEndpoint)) {
+      existingTextRef.current = '';
+    }
+  }, [speechToTextEndpoint, stopRecording]);
 
-  const handleStopRecording = async () => stopRecording();
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (!event.shiftKey || !event.altKey || event.code !== 'KeyL' || recorderDisabled) {
+        return;
+      }
+
+      event.preventDefault();
+      if (isListening === true) {
+        handleStopRecording();
+        return;
+      }
+
+      handleStartRecording();
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleStartRecording, handleStopRecording, isListening, recorderDisabled]);
 
   const renderIcon = () => {
     if (isListening === true) {
-      return <ListeningIcon className="stroke-red-500" />;
+      return <MicOff className="stroke-status-error" />;
     }
     if (isLoading === true) {
-      return <Spinner className="stroke-gray-700 dark:stroke-gray-300" />;
+      return <Spinner className="stroke-text-secondary" />;
     }
-    return <ListeningIcon className="stroke-gray-700 dark:stroke-gray-300" />;
+    return <ListeningIcon className="stroke-text-secondary" />;
   };
 
   return (
     <TooltipAnchor
       description={localize('com_ui_use_micrphone')}
       render={
-        <button
+        <IconButton
           id="audio-recorder"
           type="button"
-          aria-label={localize('com_ui_use_micrphone')}
+          variant="ghost"
+          size="theme"
+          shape="theme"
+          label={localize('com_ui_use_micrphone')}
           onClick={isListening === true ? handleStopRecording : handleStartRecording}
-          disabled={disabled}
-          className={cn(
-            'flex size-9 items-center justify-center rounded-full p-1 transition-colors hover:bg-surface-hover',
-          )}
-          title={localize('com_ui_use_micrphone')}
+          disabled={recorderDisabled}
+          className="p-1 hover:bg-surface-composer-hover"
           aria-pressed={isListening}
         >
           {renderIcon()}
-        </button>
+        </IconButton>
       }
     />
   );
-}
+});

@@ -1,30 +1,57 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef } from 'react';
 import { useRecoilState } from 'recoil';
 import { useToastContext } from '@librechat/client';
 import { useSpeechToTextMutation } from '~/data-provider';
-import useGetAudioSettings from './useGetAudioSettings';
 import store from '~/store';
+
+export const getBestSupportedMimeType = (
+  isTypeSupported: (type: string) => boolean = (type) =>
+    typeof MediaRecorder !== 'undefined' && MediaRecorder.isTypeSupported(type),
+  userAgent: string = typeof navigator !== 'undefined' ? navigator.userAgent : '',
+) => {
+  const types = [
+    'audio/ogg;codecs=opus',
+    'audio/ogg',
+    'audio/wav',
+    'audio/webm',
+    'audio/webm;codecs=opus',
+    'audio/mp4',
+  ];
+
+  for (const type of types) {
+    if (isTypeSupported(type)) {
+      return type;
+    }
+  }
+
+  const ua = userAgent.toLowerCase();
+  if (ua.indexOf('safari') !== -1 && ua.indexOf('chrome') === -1) {
+    return 'audio/mp4';
+  } else if (ua.indexOf('firefox') !== -1) {
+    return 'audio/ogg';
+  }
+
+  return 'audio/webm';
+};
 
 const useSpeechToTextExternal = (
   setText: (text: string) => void,
   onTranscriptionComplete: (text: string) => void,
 ) => {
   const { showToast } = useToastContext();
-  const { speechToTextEndpoint } = useGetAudioSettings();
-  const isExternalSTTEnabled = speechToTextEndpoint === 'external';
   const audioStream = useRef<MediaStream | null>(null);
   const animationFrameIdRef = useRef<number | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
 
-  const [permission, setPermission] = useState(false);
+  const audioChunksRef = useRef<Blob[]>([]);
   const [isListening, setIsListening] = useState(false);
-  const [audioChunks, setAudioChunks] = useState<Blob[]>([]);
   const [isRequestBeingMade, setIsRequestBeingMade] = useState(false);
   const [audioMimeType, setAudioMimeType] = useState<string>(() => getBestSupportedMimeType());
 
   const [minDecibels] = useRecoilState(store.decibelValue);
   const [autoSendText] = useRecoilState(store.autoSendText);
+  const [languageSTT] = useRecoilState<string>(store.languageSTT);
   const [speechToText] = useRecoilState<boolean>(store.speechToText);
   const [autoTranscribeAudio] = useRecoilState<boolean>(store.autoTranscribeAudio);
 
@@ -49,34 +76,6 @@ const useSpeechToTextExternal = (
     },
   });
 
-  function getBestSupportedMimeType() {
-    const types = [
-      'audio/webm',
-      'audio/webm;codecs=opus',
-      'audio/mp4',
-      'audio/ogg;codecs=opus',
-      'audio/ogg',
-      'audio/wav',
-    ];
-
-    for (const type of types) {
-      if (typeof MediaRecorder !== 'undefined' && MediaRecorder.isTypeSupported(type)) {
-        return type;
-      }
-    }
-
-    if (typeof navigator !== 'undefined') {
-      const ua = navigator.userAgent.toLowerCase();
-      if (ua.indexOf('safari') !== -1 && ua.indexOf('chrome') === -1) {
-        return 'audio/mp4';
-      } else if (ua.indexOf('firefox') !== -1) {
-        return 'audio/ogg';
-      }
-    }
-
-    return 'audio/webm';
-  }
-
   const getFileExtension = (mimeType: string) => {
     if (mimeType.includes('mp4')) {
       return 'm4a';
@@ -91,10 +90,6 @@ const useSpeechToTextExternal = (
 
   const cleanup = () => {
     if (mediaRecorderRef.current) {
-      mediaRecorderRef.current.removeEventListener('dataavailable', (event: BlobEvent) => {
-        audioChunks.push(event.data);
-      });
-      mediaRecorderRef.current.removeEventListener('stop', handleStop);
       mediaRecorderRef.current = null;
     }
   };
@@ -105,22 +100,24 @@ const useSpeechToTextExternal = (
         audio: true,
         video: false,
       });
-      setPermission(true);
       audioStream.current = streamData ?? null;
     } catch {
-      setPermission(false);
+      audioStream.current = null;
     }
   };
 
   const handleStop = () => {
-    if (audioChunks.length > 0) {
-      const audioBlob = new Blob(audioChunks, { type: audioMimeType });
+    if (audioChunksRef.current.length > 0) {
+      const audioBlob = new Blob(audioChunksRef.current, { type: audioMimeType });
       const fileExtension = getFileExtension(audioMimeType);
 
-      setAudioChunks([]);
+      audioChunksRef.current = [];
 
       const formData = new FormData();
       formData.append('audio', audioBlob, `audio.${fileExtension}`);
+      if (languageSTT) {
+        formData.append('language', languageSTT);
+      }
       setIsRequestBeingMade(true);
       cleanup();
       processAudio(formData);
@@ -174,7 +171,7 @@ const useSpeechToTextExternal = (
 
     if (audioStream.current) {
       try {
-        setAudioChunks([]);
+        audioChunksRef.current = [];
         const bestMimeType = getBestSupportedMimeType();
         setAudioMimeType(bestMimeType);
 
@@ -182,7 +179,7 @@ const useSpeechToTextExternal = (
           mimeType: audioMimeType,
         });
         mediaRecorderRef.current.addEventListener('dataavailable', (event: BlobEvent) => {
-          audioChunks.push(event.data);
+          audioChunksRef.current.push(event.data);
         });
         mediaRecorderRef.current.addEventListener('stop', handleStop);
         mediaRecorderRef.current.start(100);
@@ -221,6 +218,11 @@ const useSpeechToTextExternal = (
   };
 
   const externalStartRecording = () => {
+    if (typeof MediaRecorder === 'undefined') {
+      showToast({ message: 'MediaRecorder is not supported in this browser', status: 'error' });
+      return;
+    }
+
     if (isListening) {
       showToast({ message: 'Already listening. Please stop recording first.', status: 'warning' });
       return;
@@ -240,36 +242,6 @@ const useSpeechToTextExternal = (
 
     stopRecording();
   };
-
-  const handleKeyDown = async (e: KeyboardEvent) => {
-    if (e.shiftKey && e.altKey && e.code === 'KeyL' && isExternalSTTEnabled) {
-      if (!window.MediaRecorder) {
-        showToast({ message: 'MediaRecorder is not supported in this browser', status: 'error' });
-        return;
-      }
-
-      if (permission === false) {
-        await getMicrophonePermission();
-      }
-
-      if (isListening) {
-        stopRecording();
-      } else {
-        startRecording();
-      }
-
-      e.preventDefault();
-    }
-  };
-
-  useEffect(() => {
-    window.addEventListener('keydown', handleKeyDown);
-
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isListening]);
 
   return {
     isListening,

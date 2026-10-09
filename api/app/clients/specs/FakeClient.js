@@ -1,5 +1,5 @@
+const { getModelMaxTokens } = require('@librechat/api');
 const BaseClient = require('../BaseClient');
-const { getModelMaxTokens } = require('../../../utils');
 
 class FakeClient extends BaseClient {
   constructor(apiKey, options = {}) {
@@ -82,7 +82,10 @@ const initializeFakeClient = (apiKey, options, fakeMessages) => {
   });
 
   TestClient.sendCompletion = jest.fn(async () => {
-    return 'Mock response text';
+    return {
+      completion: 'Mock response text',
+      metadata: undefined,
+    };
   });
 
   TestClient.getCompletion = jest.fn().mockImplementation(async (..._args) => {
@@ -105,7 +108,7 @@ const initializeFakeClient = (apiKey, options, fakeMessages) => {
     const formattedMessages = orderedMessages.map((message) => {
       let { role: _role, sender, text } = message;
       const role = _role ?? sender;
-      const content = text ?? '';
+      const content = Array.isArray(message.content) ? message.content : (text ?? '');
       return {
         role: role?.toLowerCase() === 'user' ? 'user' : 'assistant',
         content,

@@ -1,10 +1,8 @@
 const { duplicateAgent } = require('../v1');
-const { getAgent, createAgent } = require('~/models/Agent');
-const { getActions } = require('~/models/Action');
+const { getAgent, createAgent, getActions } = require('~/models');
 const { nanoid } = require('nanoid');
 
-jest.mock('~/models/Agent');
-jest.mock('~/models/Action');
+jest.mock('~/models');
 jest.mock('nanoid');
 
 describe('duplicateAgent', () => {
@@ -70,7 +68,7 @@ describe('duplicateAgent', () => {
     await duplicateAgent(req, res);
 
     expect(getAgent).toHaveBeenCalledWith({ id: 'agent_123' });
-    expect(getActions).toHaveBeenCalledWith({ agent_id: 'agent_123' }, true);
+    expect(getActions).toHaveBeenCalledWith({ agentId: 'agent_123' }, true);
     expect(createAgent).toHaveBeenCalledWith(
       expect.objectContaining({
         id: 'agent_new_123',
@@ -146,6 +144,47 @@ describe('duplicateAgent', () => {
     expect(res.status).toHaveBeenCalledWith(201);
   });
 
+  it('rewrites graph-team self references to the duplicated agent id', async () => {
+    getAgent.mockResolvedValue({
+      id: 'agent_123',
+      name: 'Graph parent',
+      subagents: {
+        enabled: true,
+        graphs: [
+          {
+            type: 'team',
+            name: 'Team',
+            description: 'A self-contained team',
+            agent_ids: ['agent_123', 'agent_member'],
+            edges: [{ from: ['agent_member'], to: 'agent_123', edgeType: 'direct' }],
+            entry_agent_id: 'agent_member',
+            result_agent_id: 'agent_123',
+          },
+        ],
+      },
+    });
+    getActions.mockResolvedValue([]);
+    nanoid.mockReturnValue('new_123');
+    createAgent.mockResolvedValue({ id: 'agent_new_123' });
+
+    await duplicateAgent(req, res);
+
+    expect(createAgent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        subagents: expect.objectContaining({
+          graphs: [
+            expect.objectContaining({
+              agent_ids: ['agent_new_123', 'agent_member'],
+              edges: [expect.objectContaining({ from: ['agent_member'], to: 'agent_new_123' })],
+              entry_agent_id: 'agent_member',
+              result_agent_id: 'agent_new_123',
+            }),
+          ],
+        }),
+      }),
+    );
+  });
+
   it('should return 404 if agent not found', async () => {
     getAgent.mockResolvedValue(null);
 
@@ -158,7 +197,7 @@ describe('duplicateAgent', () => {
     });
   });
 
-  it('should handle tool_resources.ocr correctly', async () => {
+  it('should convert `tool_resources.ocr` to `tool_resources.context`', async () => {
     const mockAgent = {
       id: 'agent_123',
       name: 'Test Agent',
@@ -178,7 +217,7 @@ describe('duplicateAgent', () => {
     expect(createAgent).toHaveBeenCalledWith(
       expect.objectContaining({
         tool_resources: {
-          ocr: { enabled: true, config: 'test' },
+          context: { enabled: true, config: 'test' },
         },
       }),
     );

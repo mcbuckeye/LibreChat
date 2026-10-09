@@ -3,17 +3,17 @@ import { Spinner } from '@librechat/client';
 import { PermissionBits } from 'librechat-data-provider';
 import type t from 'librechat-data-provider';
 import { useMarketplaceAgentsInfiniteQuery } from '~/data-provider/Agents';
-import { useAgentCategories, useLocalize } from '~/hooks';
 import { useInfiniteScroll } from '~/hooks/useInfiniteScroll';
+import { useAgentCategories, useLocalize } from '~/hooks';
 import { useHasData } from './SmartLoader';
 import ErrorDisplay from './ErrorDisplay';
 import AgentCard from './AgentCard';
 
 interface AgentGridProps {
-  category: string; // Currently selected category
-  searchQuery: string; // Current search query
-  onSelectAgent: (agent: t.Agent) => void; // Callback when agent is selected
-  scrollElement?: HTMLElement | null; // Parent scroll container for infinite scroll
+  category: string;
+  searchQuery: string;
+  onSelectAgent: (agent: t.Agent) => void;
+  scrollElementRef?: React.RefObject<HTMLElement>;
 }
 
 /**
@@ -23,7 +23,7 @@ const AgentGrid: React.FC<AgentGridProps> = ({
   category,
   searchQuery,
   onSelectAgent,
-  scrollElement,
+  scrollElementRef,
 }) => {
   const localize = useLocalize();
 
@@ -87,7 +87,7 @@ const AgentGrid: React.FC<AgentGridProps> = ({
   // Set up infinite scroll
   const { setScrollElement } = useInfiniteScroll({
     hasNextPage,
-    isFetchingNextPage,
+    isLoading: isFetching || isFetchingNextPage,
     fetchNextPage: () => {
       if (hasNextPage && !isFetching) {
         fetchNextPage();
@@ -99,10 +99,11 @@ const AgentGrid: React.FC<AgentGridProps> = ({
 
   // Connect the scroll element when it's provided
   useEffect(() => {
+    const scrollElement = scrollElementRef?.current;
     if (scrollElement) {
       setScrollElement(scrollElement);
     }
-  }, [scrollElement, setScrollElement]);
+  }, [scrollElementRef, setScrollElement]);
 
   /**
    * Get category display name from API data or use fallback
@@ -128,7 +129,7 @@ const AgentGrid: React.FC<AgentGridProps> = ({
   // Simple loading spinner
   const loadingSpinner = (
     <div className="flex justify-center py-12">
-      <Spinner className="h-8 w-8 text-primary" />
+      <Spinner className="h-8 w-8 text-text-primary" />
     </div>
   );
 
@@ -183,7 +184,7 @@ const AgentGrid: React.FC<AgentGridProps> = ({
           {/* Agent grid - 2 per row with proper semantic structure */}
           {currentAgents && currentAgents.length > 0 && (
             <div
-              className="grid grid-cols-1 gap-6 md:grid-cols-2"
+              className="mx-4 grid grid-cols-1 gap-6 md:grid-cols-2"
               role="grid"
               aria-label={localize('com_agents_grid_announcement', {
                 count: currentAgents.length,
@@ -192,7 +193,7 @@ const AgentGrid: React.FC<AgentGridProps> = ({
             >
               {currentAgents.map((agent: t.Agent, index: number) => (
                 <div key={`${agent.id}-${index}`} role="gridcell">
-                  <AgentCard agent={agent} onClick={() => onSelectAgent(agent)} />
+                  <AgentCard agent={agent} onSelect={onSelectAgent} />
                 </div>
               ))}
             </div>
@@ -206,7 +207,7 @@ const AgentGrid: React.FC<AgentGridProps> = ({
               aria-live="polite"
               aria-label={localize('com_agents_loading')}
             >
-              <Spinner className="h-6 w-6 text-primary" />
+              <Spinner className="h-6 w-6 text-text-primary" />
               <span className="sr-only">{localize('com_agents_loading')}</span>
             </div>
           )}
@@ -224,7 +225,7 @@ const AgentGrid: React.FC<AgentGridProps> = ({
     </div>
   );
 
-  if (isLoading || (isFetching && !isFetchingNextPage)) {
+  if ((isLoading || (isFetching && !isFetchingNextPage)) && !hasData) {
     return loadingSpinner;
   }
   return mainContent;

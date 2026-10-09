@@ -1,14 +1,12 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { RecoilRoot } from 'recoil';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, useNavigate } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { RecoilRoot } from 'recoil';
-
-import type t from 'librechat-data-provider';
+import { render, screen, waitFor } from '@testing-library/react';
 import { Constants, EModelEndpoint } from 'librechat-data-provider';
-
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import type t from 'librechat-data-provider';
 import AgentDetail from '../AgentDetail';
 
 // Mock dependencies
@@ -20,6 +18,24 @@ jest.mock('react-router-dom', () => ({
 jest.mock('~/hooks', () => ({
   useMediaQuery: jest.fn(() => false), // Mock as desktop by default
   useLocalize: jest.fn(),
+  useDefaultConvo: jest.fn(),
+  useFavorites: jest.fn(() => ({
+    favorites: [],
+    isFavoriteAgent: jest.fn(() => false),
+    toggleFavoriteAgent: jest.fn(),
+    isFavoriteModel: jest.fn(() => false),
+    toggleFavoriteModel: jest.fn(),
+    addFavoriteAgent: jest.fn(),
+    removeFavoriteAgent: jest.fn(),
+    addFavoriteModel: jest.fn(),
+    removeFavoriteModel: jest.fn(),
+    reorderFavorites: jest.fn(),
+    isLoading: false,
+    isError: false,
+    isUpdating: false,
+    fetchError: null,
+    updateError: null,
+  })),
 }));
 
 jest.mock('@librechat/client', () => ({
@@ -31,6 +47,15 @@ jest.mock('~/utils/agents', () => ({
   renderAgentAvatar: jest.fn((agent, options) => (
     <div data-testid="agent-avatar" data-size={options?.size} />
   )),
+}));
+
+jest.mock('~/utils/endpoints', () => ({
+  specDisplayFieldReset: {
+    spec: null,
+    iconURL: null,
+    modelLabel: null,
+    greeting: undefined,
+  },
 }));
 
 jest.mock('~/Providers', () => ({
@@ -47,7 +72,12 @@ const mockWriteText = jest.fn();
 
 const mockNavigate = jest.fn();
 const mockShowToast = jest.fn();
-const mockLocalize = jest.fn((key: string) => key);
+const mockLocalize = jest.fn((key: string, values?: Record<string, any>) => {
+  if (key === 'com_agents_chat_with' && values?.name) {
+    return `Chat with ${values.name}`;
+  }
+  return key;
+});
 
 const mockAgent: t.Agent = {
   id: 'test-agent-id',
@@ -106,8 +136,12 @@ describe('AgentDetail', () => {
     (useNavigate as jest.Mock).mockReturnValue(mockNavigate);
     const { useToastContext } = require('@librechat/client');
     (useToastContext as jest.Mock).mockReturnValue({ showToast: mockShowToast });
-    const { useLocalize } = require('~/hooks');
+    const { useLocalize, useDefaultConvo } = require('~/hooks');
     (useLocalize as jest.Mock).mockReturnValue(mockLocalize);
+    (useDefaultConvo as jest.Mock).mockReturnValue(() => ({
+      conversationId: Constants.NEW_CONVO,
+      endpoint: EModelEndpoint.agents,
+    }));
 
     // Mock useChatContext
     const { useChatContext } = require('~/Providers');
@@ -121,6 +155,7 @@ describe('AgentDetail', () => {
     (useQueryClient as jest.Mock).mockReturnValue({
       getQueryData: jest.fn(),
       setQueryData: jest.fn(),
+      removeQueries: jest.fn(),
       invalidateQueries: jest.fn(),
     });
 
@@ -205,6 +240,7 @@ describe('AgentDetail', () => {
       const mockQueryClient = {
         getQueryData: jest.fn().mockReturnValue(null),
         setQueryData: jest.fn(),
+        removeQueries: jest.fn(),
         invalidateQueries: jest.fn(),
       };
 
@@ -227,9 +263,55 @@ describe('AgentDetail', () => {
         template: {
           conversationId: Constants.NEW_CONVO,
           endpoint: EModelEndpoint.agents,
+        },
+        preset: {
+          conversationId: Constants.NEW_CONVO,
+          endpoint: EModelEndpoint.agents,
           agent_id: 'test-agent-id',
           title: 'Chat with Test Agent',
+          spec: null,
+          iconURL: null,
+          modelLabel: null,
+          greeting: undefined,
         },
+      });
+    });
+
+    it('should clear model spec display fields when starting an agent chat', async () => {
+      const user = userEvent.setup();
+      const mockNewConversation = jest.fn();
+      const { useChatContext } = require('~/Providers');
+      (useChatContext as jest.Mock).mockReturnValue({
+        conversation: {
+          conversationId: 'test-convo-id',
+          spec: 'ClickHouse Agent',
+          iconURL: '/images/clickhouse.svg',
+          modelLabel: 'ClickHouse Agent',
+        },
+        newConversation: mockNewConversation,
+      });
+      const { useDefaultConvo } = require('~/hooks');
+      (useDefaultConvo as jest.Mock).mockReturnValue(({ conversation, preset }) => ({
+        ...conversation,
+        ...preset,
+      }));
+
+      renderWithProviders(<AgentDetail {...defaultProps} />);
+      await user.click(screen.getByRole('button', { name: 'com_agents_start_chat' }));
+
+      expect(mockNewConversation).toHaveBeenCalledWith({
+        template: expect.objectContaining({
+          endpoint: EModelEndpoint.agents,
+          agent_id: 'test-agent-id',
+          spec: null,
+          iconURL: null,
+          modelLabel: null,
+        }),
+        preset: expect.objectContaining({
+          spec: null,
+          iconURL: null,
+          modelLabel: null,
+        }),
       });
     });
 
@@ -328,7 +410,7 @@ describe('AgentDetail', () => {
       renderWithProviders(<AgentDetail {...defaultProps} />);
 
       const copyLinkButton = screen.getByRole('button', { name: 'com_agents_copy_link' });
-      expect(copyLinkButton).toHaveClass('focus:outline-none', 'focus:ring-2');
+      expect(copyLinkButton).toHaveClass('focus-visible:outline-none', 'focus-visible:ring-2');
     });
   });
 

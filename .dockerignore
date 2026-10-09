@@ -15,3 +15,15 @@ docs
 
 # Ignore all hidden files
 .*
+
+# MyGPT private material and local runtime artifacts
+.mygpt-local/
+mygpt2_certs/
+mygpt2_certs_frida/
+**/*.pem
+**/*.key
+**/*.pfx
+**/__pycache__/
+**/*.pyc
+uploads/
+logs/

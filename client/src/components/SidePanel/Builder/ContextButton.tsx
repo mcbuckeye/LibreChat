@@ -100,7 +100,7 @@ export default function ContextButton({
         </button>
       </DialogTrigger>
       <DialogTemplate
-        title={localize('com_ui_delete') + ' ' + localize('com_ui_assistant')}
+        title={localize('com_ui_delete_assistant')}
         className="max-w-[450px]"
         main={
           <>
@@ -116,7 +116,8 @@ export default function ContextButton({
         selection={{
           selectHandler: () =>
             deleteAssistant.mutate({ assistant_id, model: activeModel, endpoint }),
-          selectClasses: 'bg-red-600 hover:bg-red-700 dark:hover:bg-red-800 text-white',
+          selectClasses:
+            'bg-surface-destructive hover:bg-surface-destructive-hover text-text-on-status',
           selectText: localize('com_ui_delete'),
         }}
       />

@@ -1,48 +1,48 @@
-# MyGPT2 local test instance
+# MyGPT2 on LibreChat v0.8.8
 
-All application services run in Docker Compose. The API image builds this checkout's source, including its frontend, using Node 20. It does not use the floating upstream LibreChat image.
+The upgrade runs from source in a separate Docker Compose project, `mygpt2-upgrade`. Node 24.16.0 builds and serves the app inside Docker. Node on the Mac prepares the build context. The original `mygpt2-local` stack remains on port 3080 with its existing volumes.
 
-Open http://localhost:3080 and use Sign up to create a local test account. Local registration is enabled and Microsoft SSO is disabled because its callback is configured for the company domain. Existing provider credentials are copied privately from the root .env, so model calls use those accounts and may incur normal charges.
+| Service | Local URL |
+| --- | --- |
+| Upgraded MyGPT2 | http://localhost:3081 |
+| Reporting dashboard | http://localhost:8083/dashboard |
+| Upgraded custom interpreter API | http://localhost:8084 |
 
-This project uses separate Docker volumes for its database, search index, uploads, generated images and logs. It does not use the existing data-node directory. All published ports bind to 127.0.0.1.
+MongoDB 8.0.20, Meilisearch 1.35.1, pgvector and the pinned RAG API run with separate named volumes. RAG uses the existing privately supplied provider key for embeddings. Every published development port binds to loopback.
 
-Start or rebuild after source changes, from the repository root:
+## Start and stop
+
+From this checkout, provide the private environment source and the upgraded interpreter checkout location:
 
 ```sh
-.mygpt-local/start.sh
+CODE_INTERPRETER_PROJECT_DIR=/absolute/path/to/code-interpreter-mygpt2-upgrade .mygpt-local/start-interpreter.sh
+MYGPT_ENV_SOURCE=/absolute/path/to/private/.env .mygpt-local/start.sh
 ```
 
-Stop without deleting test data:
+If this checkout has its own ignored `.env`, omit MYGPT_ENV_SOURCE. It must contain the configured model provider credentials. The helper generates persistent local encryption/session keys and a PostgreSQL password under `.mygpt-local`, creates a private runtime.env, disables Microsoft SSO for localhost, and enables local email registration. Keep those generated keys when restarting this database.
 
 ```sh
 .mygpt-local/stop.sh
+CODE_INTERPRETER_PROJECT_DIR=/absolute/path/to/code-interpreter-mygpt2-upgrade .mygpt-local/stop-interpreter.sh
+docker compose -p mygpt2-upgrade -f .mygpt-local/compose.yml ps
 ```
 
-Inspect services and logs:
+Stopping preserves data. Do not use `down -v` unless intentionally discarding the test database and files.
+
+## Interpreter
+
+MyGPT2 connects to `http://host.docker.internal:8084/v1/librechat`. The upgraded custom interpreter supports Bash using our scientific Python sandbox, SDK 4 storage-session references, and staging inputs from multiple upload sessions. It uses a separate API image and the `mygpt2-python:v0.8.8` sandbox tag. Only Python/Bash were built and tested; other languages require their sandbox images.
+
+To use it, choose Tools Options beside the attachment button, enable **Run Code**, and ask for Python execution. Charts display in chat and workbooks open as previews and can be downloaded. **File Search** uses the separate RAG service.
 
 ```sh
-docker compose -p mygpt2-local -f .mygpt-local/compose.yml ps
-docker compose -p mygpt2-local -f .mygpt-local/compose.yml logs -f api
+docker compose -p mygpt2-upgrade -f .mygpt-local/compose.yml exec -T api node < .mygpt-local/test-interpreter.cjs
 ```
 
-The reporting dashboard runs at http://localhost:8082/dashboard and uses the existing Flask dashboard credentials. With the fresh database, reports initially contain no usage data.
+The interpreter is a private local test service and uses the Docker socket to start execution containers. It is not a production authentication/isolation design. The official Apache-licensed LibreChat interpreter is a separate candidate for production; it has its own Redis, object storage and sandbox runner. It has not been deployed by this upgrade.
 
-The code interpreter runs as a separate Compose project from a sibling `code-interpreter` checkout (override its location with `CODE_INTERPRETER_PROJECT_DIR`), at http://localhost:8080. MyGPT2 connects through http://host.docker.internal:8080/v1/librechat. Python uses the customized code-interpreter-python:latest sandbox image. Other languages need their respective sandbox images built separately.
+## Deployment boundary
 
-Start/rebuild the interpreter with `.mygpt-local/start-interpreter.sh`; stop it with `.mygpt-local/stop-interpreter.sh`. The local override binds its API to 127.0.0.1 and runs the service without privileged mode, while retaining the Docker socket required to create execution containers.
+This is a fresh-data local validation environment. Live Entra SSO, company-server deployment, production user/data migration, experimental workspaces/scheduling and all model-provider combinations require separate acceptance testing. SCHEDULES_SINGLE_PROCESS=true describes this single API process; a multi-replica deployment must use the appropriate shared Redis stores instead. Beta features are not exposed by this local configuration.
 
-The initial builds encountered Docker build-time DNS failures; the helper uses `docker build --network=host` for dependency downloads. Runtime execution sandboxes retain the project's disabled-network default. The Python Dockerfile upgrades h5py, pyarrow, numexpr and bottleneck to match the newer NumPy installed by its analysis packages.
-
-Verified from inside the MyGPT2 API container: interpreter health, Python execution with pandas, and generation/download of an Excel workbook and PNG chart. To repeat the check, run:
-
-```sh
-docker compose -p mygpt2-local -f .mygpt-local/compose.yml exec -T api node < .mygpt-local/test-interpreter.cjs
-```
-
-RAG/document-search is not included in the local stack. Microsoft SSO needs a registered localhost callback before it can be tested locally.
-
-The selected setup scripts are tracked. Runtime configuration, generated credentials and build context are excluded from Git. The production .env and existing Compose files were not edited by this setup. Node on the Mac is used only to prepare the build context; it does not serve the application.
-
-Browser usage: click the sliders icon beside the paperclip (Tools Options), then Code Interpreter. A purple Code Interpreter toggle appears beneath the prompt. Ask the model to execute Python; creating an Agent is optional.
-
-Browser validation succeeded with Azure GPT-4o-mini: Python returned 6, displayed a chart, and downloaded a workbook containing 1, 2, 3. LibreChat code-tool loading now normalizes explicit null values for optional session_id/args fields; its focused tool tests pass (15 tests).
+Private environment files, generated secrets, build contexts and test artifacts are excluded from Git. Existing company configuration is not modified. The root Compose file now builds MyGPT2 from source so the additional tested dependency fixes are included; do not apply it to the older production database without a migration plan.

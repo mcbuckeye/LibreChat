@@ -40,16 +40,16 @@ const BookmarkItem: FC<MenuItemProps> = ({ tag, selected, handleSubmit, icon, ..
     }
 
     if (selected) {
-      return <BookmarkFilledIcon className="size-4" />;
+      return <BookmarkFilledIcon aria-hidden="true" className="size-4" />;
     }
 
-    return <BookmarkIcon className="size-4" />;
+    return <BookmarkIcon aria-hidden="true" className="size-4" />;
   };
 
   return (
     <MenuItem
       aria-label={tag as string}
-      className="group flex w-full gap-2 rounded-lg p-2.5 text-sm text-text-primary transition-colors duration-200 focus:outline-none data-[focus]:bg-surface-hover data-[focus-visible]:ring-2 data-[focus-visible]:ring-primary"
+      className="group flex w-full gap-2 rounded-lg p-2.5 text-sm text-text-primary transition-colors duration-200 focus:outline-none data-[focus]:bg-surface-hover data-[focus-visible]:ring-2 data-[focus-visible]:ring-text-primary"
       {...rest}
       as="button"
       onClick={clickHandler}

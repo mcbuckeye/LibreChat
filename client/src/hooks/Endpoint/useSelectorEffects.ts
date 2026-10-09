@@ -1,5 +1,10 @@
-import React, { useMemo, useEffect, useRef } from 'react';
-import { isAgentsEndpoint, isAssistantsEndpoint, LocalStorageKeys } from 'librechat-data-provider';
+import React, { useMemo, useEffect, useRef, useCallback } from 'react';
+import {
+  isAgentsEndpoint,
+  LocalStorageKeys,
+  isEphemeralAgentId,
+  isAssistantsEndpoint,
+} from 'librechat-data-provider';
 import type * as t from 'librechat-data-provider';
 import type { SelectedValues } from '~/common';
 import useSetIndexOptions from '~/hooks/Conversations/useSetIndexOptions';
@@ -39,7 +44,7 @@ export default function useSelectorEffects({
     }
     if (selectedAgentId == null && agents.length > 0) {
       let agent_id = localStorage.getItem(`${LocalStorageKeys.AGENT_ID_PREFIX}${index}`);
-      if (agent_id == null) {
+      if (agent_id == null || isEphemeralAgentId(agent_id)) {
         agent_id = agents[0]?.id;
       }
       const agent = agentsMap?.[agent_id];
@@ -69,15 +74,18 @@ export default function useSelectorEffects({
 
   const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const debouncedSetSelectedValues = (values: SelectedValues) => {
-    if (debounceTimeoutRef.current) {
-      clearTimeout(debounceTimeoutRef.current);
-    }
+  const debouncedSetSelectedValues = useCallback(
+    (values: SelectedValues) => {
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
+      }
 
-    debounceTimeoutRef.current = setTimeout(() => {
-      setSelectedValues(values);
-    }, 150);
-  };
+      debounceTimeoutRef.current = setTimeout(() => {
+        setSelectedValues(values);
+      }, 150);
+    },
+    [setSelectedValues],
+  );
 
   useEffect(() => {
     if (!conversation?.endpoint) {
@@ -116,6 +124,7 @@ export default function useSelectorEffects({
       }
     };
   }, [
+    debouncedSetSelectedValues,
     conversation?.spec,
     conversation?.model,
     conversation?.endpoint,

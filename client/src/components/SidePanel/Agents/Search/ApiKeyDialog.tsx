@@ -1,14 +1,14 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button, OGDialog, OGDialogTemplate } from '@librechat/client';
 import {
   AuthType,
-  SearchCategories,
   RerankerTypes,
   SearchProviders,
-  ScraperTypes,
+  ScraperProviders,
+  SearchCategories,
 } from 'librechat-data-provider';
+import type { UseFormRegister, UseFormHandleSubmit, UseFormSetValue } from 'react-hook-form';
 import type { SearchApiKeyFormData } from '~/hooks/Plugins/useAuthSearchTool';
-import type { UseFormRegister, UseFormHandleSubmit } from 'react-hook-form';
 import InputSection, { type DropdownOption } from './InputSection';
 import { useGetStartupConfig } from '~/data-provider';
 import { useLocalize } from '~/hooks';
@@ -21,9 +21,13 @@ export default function ApiKeyDialog({
   authTypes,
   isToolAuthenticated,
   register,
+  setValue,
   handleSubmit,
   triggerRef,
   triggerRefs,
+  searchProvider,
+  scraperProvider,
+  rerankerType,
 }: {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
@@ -32,20 +36,53 @@ export default function ApiKeyDialog({
   authTypes: [string, AuthType][];
   isToolAuthenticated: boolean;
   register: UseFormRegister<SearchApiKeyFormData>;
+  setValue: UseFormSetValue<SearchApiKeyFormData>;
   handleSubmit: UseFormHandleSubmit<SearchApiKeyFormData>;
   triggerRef?: React.RefObject<HTMLInputElement | HTMLButtonElement>;
   triggerRefs?: React.RefObject<HTMLInputElement | HTMLButtonElement>[];
+  searchProvider?: SearchProviders;
+  scraperProvider?: ScraperProviders;
+  rerankerType?: RerankerTypes;
 }) {
   const localize = useLocalize();
   const { data: config } = useGetStartupConfig();
 
   const [selectedProvider, setSelectedProvider] = useState(
-    config?.webSearch?.searchProvider || SearchProviders.SERPER,
+    config?.webSearch?.searchProvider || searchProvider || SearchProviders.SERPER,
   );
   const [selectedReranker, setSelectedReranker] = useState(
-    config?.webSearch?.rerankerType || RerankerTypes.JINA,
+    config?.webSearch?.rerankerType || rerankerType || RerankerTypes.JINA,
   );
-  const [selectedScraper, setSelectedScraper] = useState(ScraperTypes.FIRECRAWL);
+  const [selectedScraper, setSelectedScraper] = useState(
+    config?.webSearch?.scraperProvider || scraperProvider || ScraperProviders.FIRECRAWL,
+  );
+
+  useEffect(() => {
+    if (!isOpen) {
+      return;
+    }
+    setSelectedProvider(
+      config?.webSearch?.searchProvider || searchProvider || SearchProviders.SERPER,
+    );
+    setSelectedScraper(
+      config?.webSearch?.scraperProvider || scraperProvider || ScraperProviders.FIRECRAWL,
+    );
+    setSelectedReranker(config?.webSearch?.rerankerType || rerankerType || RerankerTypes.JINA);
+  }, [
+    config?.webSearch?.rerankerType,
+    config?.webSearch?.scraperProvider,
+    config?.webSearch?.searchProvider,
+    isOpen,
+    rerankerType,
+    scraperProvider,
+    searchProvider,
+  ]);
+
+  useEffect(() => {
+    setValue('selectedProvider', selectedProvider);
+    setValue('selectedScraper', selectedScraper);
+    setValue('selectedReranker', selectedReranker);
+  }, [selectedProvider, selectedReranker, selectedScraper, setValue]);
 
   const providerOptions: DropdownOption[] = [
     {
@@ -76,9 +113,45 @@ export default function ApiKeyDialog({
         },
       },
     },
+    {
+      key: SearchProviders.TAVILY,
+      label: localize('com_ui_web_search_provider_tavily'),
+      inputs: {
+        tavilyApiKey: {
+          placeholder: localize('com_ui_enter_api_key'),
+          type: 'password' as const,
+          link: {
+            url: 'https://app.tavily.com/home',
+            text: localize('com_ui_web_search_provider_tavily_key'),
+          },
+        },
+      },
+    },
+    {
+      key: SearchProviders.KEENABLE,
+      label: localize('com_ui_web_search_provider_keenable'),
+      inputs: {
+        keenableApiKey: {
+          placeholder: localize('com_ui_enter_api_key_optional'),
+          type: 'password' as const,
+          link: {
+            url: 'https://keenable.ai',
+            text: localize('com_ui_web_search_provider_keenable_key'),
+          },
+        },
+        keenableApiUrl: {
+          placeholder: localize('com_ui_web_search_keenable_url'),
+          type: 'text' as const,
+        },
+      },
+    },
   ];
 
   const rerankerOptions: DropdownOption[] = [
+    {
+      key: RerankerTypes.NONE,
+      label: localize('com_ui_web_search_reranker_none'),
+    },
     {
       key: RerankerTypes.JINA,
       label: localize('com_ui_web_search_reranker_jina'),
@@ -89,6 +162,14 @@ export default function ApiKeyDialog({
           link: {
             url: 'https://jina.ai/api-dashboard/',
             text: localize('com_ui_web_search_reranker_jina_key'),
+          },
+        },
+        jinaApiUrl: {
+          placeholder: localize('com_ui_web_search_jina_url'),
+          type: 'text' as const,
+          link: {
+            url: 'https://api.jina.ai/v1/rerank',
+            text: localize('com_ui_web_search_reranker_jina_url_help'),
           },
         },
       },
@@ -111,7 +192,7 @@ export default function ApiKeyDialog({
 
   const scraperOptions: DropdownOption[] = [
     {
-      key: ScraperTypes.FIRECRAWL,
+      key: ScraperProviders.FIRECRAWL,
       label: localize('com_ui_web_search_scraper_firecrawl'),
       inputs: {
         firecrawlApiUrl: {
@@ -124,6 +205,48 @@ export default function ApiKeyDialog({
           link: {
             url: 'https://docs.firecrawl.dev/introduction#api-key',
             text: localize('com_ui_web_search_scraper_firecrawl_key'),
+          },
+        },
+      },
+    },
+    {
+      key: ScraperProviders.SERPER,
+      label: localize('com_ui_web_search_scraper_serper'),
+      inputs: {
+        serperApiKey: {
+          placeholder: localize('com_ui_enter_api_key'),
+          type: 'password' as const,
+          link: {
+            url: 'https://serper.dev/api-keys',
+            text: localize('com_ui_web_search_scraper_serper_key'),
+          },
+        },
+      },
+    },
+    {
+      key: ScraperProviders.TAVILY,
+      label: localize('com_ui_web_search_scraper_tavily'),
+      inputs: {
+        tavilyApiKey: {
+          placeholder: localize('com_ui_enter_api_key'),
+          type: 'password' as const,
+          link: {
+            url: 'https://app.tavily.com/home',
+            text: localize('com_ui_web_search_scraper_tavily_key'),
+          },
+        },
+      },
+    },
+    {
+      key: ScraperProviders.KEENABLE,
+      label: localize('com_ui_web_search_scraper_keenable'),
+      inputs: {
+        keenableApiKey: {
+          placeholder: localize('com_ui_enter_api_key_optional'),
+          type: 'password' as const,
+          link: {
+            url: 'https://keenable.ai',
+            text: localize('com_ui_web_search_provider_keenable_key'),
           },
         },
       },
@@ -149,7 +272,21 @@ export default function ApiKeyDialog({
   };
 
   const handleScraperChange = (key: string) => {
-    setSelectedScraper(key as ScraperTypes);
+    setSelectedScraper(key as ScraperProviders);
+  };
+
+  const handleVisibleSubmit = (data: SearchApiKeyFormData) => {
+    const visibleData = { ...data };
+    if (providerAuthType === AuthType.SYSTEM_DEFINED || config?.webSearch?.searchProvider != null) {
+      delete visibleData.selectedProvider;
+    }
+    if (scraperAuthType === AuthType.SYSTEM_DEFINED || config?.webSearch?.scraperProvider != null) {
+      delete visibleData.selectedScraper;
+    }
+    if (rerankerAuthType === AuthType.SYSTEM_DEFINED || config?.webSearch?.rerankerType != null) {
+      delete visibleData.selectedReranker;
+    }
+    onSubmit(visibleData);
   };
 
   return (
@@ -165,7 +302,7 @@ export default function ApiKeyDialog({
         main={
           <>
             <div className="mb-4 text-center font-medium">{localize('com_ui_web_search')}</div>
-            <form onSubmit={handleSubmit(onSubmit)}>
+            <form onSubmit={handleSubmit(handleVisibleSubmit)}>
               {/* Provider Section */}
               {providerAuthType !== AuthType.SYSTEM_DEFINED && (
                 <InputSection
@@ -190,7 +327,7 @@ export default function ApiKeyDialog({
                   selectedKey={selectedScraper}
                   onSelectionChange={handleScraperChange}
                   dropdownOptions={scraperOptions}
-                  showDropdown={!config?.webSearch?.scraperType}
+                  showDropdown={!config?.webSearch?.scraperProvider}
                   register={register}
                   dropdownOpen={dropdownOpen.scraper}
                   setDropdownOpen={(open) =>
@@ -220,13 +357,13 @@ export default function ApiKeyDialog({
           </>
         }
         selection={{
-          selectHandler: handleSubmit(onSubmit),
-          selectClasses: 'bg-green-500 hover:bg-green-600 text-white',
+          selectHandler: handleSubmit(handleVisibleSubmit),
+          selectClasses: 'bg-surface-submit hover:bg-surface-submit-hover text-text-on-status',
           selectText: localize('com_ui_save'),
         }}
         buttons={
           isToolAuthenticated && (
-            <Button onClick={onRevoke} className="bg-red-500 text-white hover:bg-red-600">
+            <Button variant="destructive" onClick={onRevoke} aria-label={localize('com_ui_revoke')}>
               {localize('com_ui_revoke')}
             </Button>
           )

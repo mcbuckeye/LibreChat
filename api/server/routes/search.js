@@ -1,7 +1,7 @@
 const express = require('express');
 const { MeiliSearch } = require('meilisearch');
+const { isEnabled } = require('@librechat/api');
 const requireJwtAuth = require('~/server/middleware/requireJwtAuth');
-const { isEnabled } = require('~/server/utils');
 
 const router = express.Router();
 
@@ -20,7 +20,7 @@ router.get('/enable', async function (req, res) {
 
     const { status } = await client.health();
     return res.send(status === 'available');
-  } catch (error) {
+  } catch {
     return res.send(false);
   }
 });

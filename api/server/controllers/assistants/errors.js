@@ -1,10 +1,11 @@
 // errorHandler.js
 const { logger } = require('@librechat/data-schemas');
+const { getTransactionsConfig } = require('@librechat/api');
 const { CacheKeys, ViolationTypes, ContentTypes } = require('librechat-data-provider');
 const { recordUsage, checkMessageGaps } = require('~/server/services/Threads');
 const { sendResponse } = require('~/server/middleware/error');
-const { getConvo } = require('~/models/Conversation');
 const getLogStores = require('~/cache/getLogStores');
+const { getConvo } = require('~/models');
 
 /**
  * @typedef {Object} ErrorHandlerContext
@@ -22,7 +23,7 @@ const getLogStores = require('~/cache/getLogStores');
 
 /**
  * @typedef {Object} ErrorHandlerDependencies
- * @property {Express.Request} req - The Express request object
+ * @property {ServerRequest} req - The Express request object
  * @property {Express.Response} res - The Express response object
  * @property {() => ErrorHandlerContext} getContext - Function to get the current context
  * @property {string} [originPath] - The origin path for the error handler
@@ -124,6 +125,7 @@ const createErrorHandler = ({ req, res, getContext, originPath = '/assistants/ch
         model: run.model,
         user: req.user.id,
         conversationId,
+        transactions: getTransactionsConfig(req.config),
       });
     } catch (error) {
       logger.error(`[${originPath}] Error fetching or processing run`, error);

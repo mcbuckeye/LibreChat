@@ -1,7 +1,10 @@
 services:
   code-interpreter:
+    container_name: mygpt2-upgrade-interpreter
+    image: mygpt2-upgrade-interpreter:local
     privileged: false
     environment:
+      PY_CONTAINER_IMAGE: mygpt2-python:v0.8.8
       HOST_PATH: ${CODE_INTERPRETER_PROJECT_DIR:?Use start-interpreter.sh or set CODE_INTERPRETER_PROJECT_DIR}
     ports: !override
-      - "127.0.0.1:8080:8080"
+      - "127.0.0.1:8084:8080"

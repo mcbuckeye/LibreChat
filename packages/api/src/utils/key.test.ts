@@ -1,7 +1,8 @@
-import fs from 'fs';
 import path from 'path';
 import axios from 'axios';
-import { loadServiceKey } from './key';
+import { ErrorTypes } from 'librechat-data-provider';
+import { checkUserKeyExpiry, loadServiceKey } from './key';
+import { readFileAsString } from './files';
 
 jest.mock('fs');
 jest.mock('axios');
@@ -9,6 +10,10 @@ jest.mock('@librechat/data-schemas', () => ({
   logger: {
     error: jest.fn(),
   },
+}));
+
+jest.mock('./files', () => ({
+  readFileAsString: jest.fn(),
 }));
 
 describe('loadServiceKey', () => {
@@ -49,10 +54,13 @@ describe('loadServiceKey', () => {
 
   it('should load from file path', async () => {
     const filePath = '/path/to/service-key.json';
-    (fs.readFileSync as jest.Mock).mockReturnValue(JSON.stringify(mockServiceKey));
+    (readFileAsString as jest.Mock).mockResolvedValue({
+      content: JSON.stringify(mockServiceKey),
+      bytes: JSON.stringify(mockServiceKey).length,
+    });
 
     const result = await loadServiceKey(filePath);
-    expect(fs.readFileSync).toHaveBeenCalledWith(path.resolve(filePath), 'utf8');
+    expect(readFileAsString).toHaveBeenCalledWith(path.resolve(filePath));
     expect(result).toEqual(mockServiceKey);
   });
 
@@ -73,9 +81,7 @@ describe('loadServiceKey', () => {
 
   it('should handle file read errors', async () => {
     const filePath = '/path/to/nonexistent.json';
-    (fs.readFileSync as jest.Mock).mockImplementation(() => {
-      throw new Error('File not found');
-    });
+    (readFileAsString as jest.Mock).mockRejectedValue(new Error('File not found'));
 
     const result = await loadServiceKey(filePath);
     expect(result).toBeNull();
@@ -178,5 +184,32 @@ describe('loadServiceKey', () => {
 
     const result = await loadServiceKey(invalidBase64);
     expect(result).toBeNull();
+  });
+});
+
+describe('checkUserKeyExpiry', () => {
+  it('accepts a key that has not expired', () => {
+    expect(() =>
+      checkUserKeyExpiry(new Date(Date.now() + 60_000).toISOString(), 'openAI'),
+    ).not.toThrow();
+  });
+
+  /** A locale-formatted date cannot be parsed back reliably by a client in another locale. */
+  it('reports an expired key with a locale-independent ISO timestamp', () => {
+    const expiresAt = '2026-08-01T09:30:00.000Z';
+
+    let thrown: Error | undefined;
+    try {
+      checkUserKeyExpiry(expiresAt, 'google');
+    } catch (error) {
+      thrown = error as Error;
+    }
+
+    expect(thrown).toBeInstanceOf(Error);
+    expect(JSON.parse(thrown?.message ?? '')).toEqual({
+      type: ErrorTypes.EXPIRED_USER_KEY,
+      expiredAt: expiresAt,
+      endpoint: 'google',
+    });
   });
 });

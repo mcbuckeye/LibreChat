@@ -14,20 +14,26 @@ for (const name of ['api', 'client', 'packages', 'config']) {
     filter: source => !excluded.has(path.basename(source)) && !path.basename(source).startsWith('.env') && !source.endsWith('.log'),
   });
 }
-for (const name of ['package.json', 'package-lock.json']) fs.copyFileSync(path.join(root, name), path.join(context, name));
+for (const name of ['package.json', 'package-lock.json', '.npmrc']) fs.copyFileSync(path.join(root, name), path.join(context, name));
 fs.copyFileSync(path.join(__dirname, 'Dockerfile'), path.join(context, 'Dockerfile'));
 const secretPath = path.join(__dirname, 'secrets.json');
 if (!fs.existsSync(secretPath)) fs.writeFileSync(secretPath, JSON.stringify(Object.fromEntries(['JWT_SECRET', 'JWT_REFRESH_SECRET', 'CREDS_KEY', 'CREDS_IV'].map(k => [k, crypto.randomBytes(k === 'CREDS_IV' ? 16 : 32).toString('hex')]))), { mode: 0o600 });
-const env = dotenv.parse(fs.readFileSync(path.join(root, '.env')));
-Object.assign(env, JSON.parse(fs.readFileSync(secretPath)), {
-  HOST: '0.0.0.0', PORT: '3080', NODE_ENV: 'production',
-  DOMAIN_CLIENT: 'http://localhost:3080', DOMAIN_SERVER: 'http://localhost:3080',
+const localSecrets = JSON.parse(fs.readFileSync(secretPath));
+if (!localSecrets.POSTGRES_PASSWORD) {
+  localSecrets.POSTGRES_PASSWORD = crypto.randomBytes(32).toString('hex');
+  fs.writeFileSync(secretPath, JSON.stringify(localSecrets), { mode: 0o600 });
+}
+const env = dotenv.parse(fs.readFileSync(process.env.MYGPT_ENV_SOURCE || path.join(root, '.env')));
+Object.assign(env, localSecrets, {
+  HOST: '0.0.0.0', PORT: '3080', NODE_ENV: 'production', APP_TITLE: 'MyGPT2',
+  SCHEDULES_SINGLE_PROCESS: 'true',
+  DOMAIN_CLIENT: 'http://localhost:3081', DOMAIN_SERVER: 'http://localhost:3081',
   MONGO_URI: 'mongodb://mongodb:27017/LibreChat',
   MEILI_HOST: 'http://meilisearch:7700', MEILI_MASTER_KEY: 'mygpt2-local-search-key',
   ALLOW_EMAIL_LOGIN: 'true', ALLOW_REGISTRATION: 'true',
   ALLOW_SOCIAL_LOGIN: 'false', ALLOW_SOCIAL_REGISTRATION: 'false',
   ALLOW_UNVERIFIED_EMAIL_LOGIN: 'true',
-  LIBRECHAT_CODE_BASEURL: 'http://host.docker.internal:8080/v1/librechat',
+  LIBRECHAT_CODE_BASEURL: 'http://host.docker.internal:8084/v1/librechat',
   RAG_API_URL: 'http://rag_api:8000', CONFIG_PATH: '/app/librechat.yaml',
 });
 for (const key of Object.keys(env)) if (/^(OPENID_|SMTP_|EMAIL_)/.test(key)) delete env[key];

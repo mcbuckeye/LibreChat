@@ -722,8 +722,13 @@ SQLITE_DB_PATH = os.getenv("SQLITE_DB_PATH", "message_categories.db")
 def categories_dashboard():
     """Display the message categories dashboard."""
     try:
-        # Connect to SQLite database
+        # A fresh instance has no categorization database until the batch job runs.
+        if not os.path.isfile(SQLITE_DB_PATH):
+            return render_template('categories.html', categories=[], category_data={"labels": [], "values": []}, recent_messages=[], total_count=0)
         conn = sqlite3.connect(SQLITE_DB_PATH)
+        if not conn.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='message_categories'").fetchone():
+            conn.close()
+            return render_template('categories.html', categories=[], category_data={"labels": [], "values": []}, recent_messages=[], total_count=0)
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
         
@@ -795,8 +800,13 @@ def categories_dashboard():
 def category_details(category_name):
     """Display all messages in a specific category."""
     try:
-        # Connect to SQLite database
+        # Treat an installation without categorized messages as an empty result.
+        if not os.path.isfile(SQLITE_DB_PATH):
+            return render_template('category_details.html', category_name=category_name, category_count=0, messages=[])
         conn = sqlite3.connect(SQLITE_DB_PATH)
+        if not conn.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='message_categories'").fetchone():
+            conn.close()
+            return render_template('category_details.html', category_name=category_name, category_count=0, messages=[])
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
         

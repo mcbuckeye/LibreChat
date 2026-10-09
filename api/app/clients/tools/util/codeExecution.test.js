@@ -1,42 +1,57 @@
+const mockFetch = jest.fn();
+jest.mock(
+  'node-fetch',
+  () =>
+    (...args) =>
+      mockFetch(...args),
+);
 const { createCodeExecutionTool } = require('@librechat/agents');
-const { normalizeCodeExecutionTool } = require('./codeExecution');
 
-describe('code execution optional arguments', () => {
-  function createTool() {
-    const tool = normalizeCodeExecutionTool(createCodeExecutionTool({ apiKey: 'test-key' }));
-    tool.func = jest.fn().mockResolvedValue(['stdout: 4', {}]);
-    return tool;
-  }
-
-  test('executes when the model returns null for optional arguments', async () => {
-    const tool = createTool();
-    await tool.invoke({ lang: 'py', code: 'print(2 + 2)', session_id: null, args: null });
-    expect(tool.func.mock.calls[0][0]).toEqual({
-      lang: 'py',
-      code: 'print(2 + 2)',
-      session_id: undefined,
-      args: undefined,
+describe('MyGPT2 interpreter compatibility with Agents SDK 4', () => {
+  beforeEach(() => {
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({ stdout: '6', stderr: '', session_id: 'test-session', files: [] }),
     });
   });
 
-  test('preserves an existing session and command arguments', async () => {
-    const tool = createTool();
+  test('executes Python using the SDK 4 schema without the old Zod workaround', async () => {
+    const tool = createCodeExecutionTool({
+      baseUrl: 'http://interpreter.invalid/v1/librechat',
+      user_id: 'test-user',
+    });
+    const result = await tool.invoke({ lang: 'py', code: 'print(6)' });
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+    const [url, options] = mockFetch.mock.calls[0];
+    expect(url).toBe('http://interpreter.invalid/v1/librechat/exec');
+    expect(JSON.parse(options.body)).toMatchObject({
+      lang: 'py',
+      code: 'print(6)',
+      user_id: 'test-user',
+    });
+    expect(JSON.stringify(result)).toContain('6');
+  });
+
+  test('sends previously generated files to subsequent executions', async () => {
+    const files = [{ id: 'file-1', name: 'input.csv', session_id: 'previous-session' }];
+    const tool = createCodeExecutionTool({
+      baseUrl: 'http://interpreter.invalid/v1/librechat',
+      files,
+    });
+    await tool.invoke({ lang: 'py', code: 'print(6)', args: ['a'] });
+    expect(JSON.parse(mockFetch.mock.calls[0][1].body)).toMatchObject({ files, args: ['a'] });
+  });
+
+  test('does not let model arguments opt into stateful execution', async () => {
+    const tool = createCodeExecutionTool({
+      baseUrl: 'http://interpreter.invalid/v1/librechat',
+      executionProfile: 'default',
+    });
     await tool.invoke({
       lang: 'py',
-      code: 'print(2 + 2)',
-      session_id: 'existing-session',
-      args: ['a'],
+      code: 'print(6)',
+      runtime_session_hint: 'untrusted-workspace',
     });
-    expect(tool.func.mock.calls[0][0]).toMatchObject({
-      session_id: 'existing-session',
-      args: ['a'],
-    });
-  });
-
-  test('still rejects invalid optional arguments', async () => {
-    const tool = createTool();
-    await expect(tool.invoke({ lang: 'py', code: 'print(4)', session_id: 123 })).rejects.toThrow();
-    await expect(tool.invoke({ lang: 'py', code: 'print(4)', args: 'a' })).rejects.toThrow();
-    expect(tool.func).not.toHaveBeenCalled();
+    expect(JSON.parse(mockFetch.mock.calls[0][1].body)).not.toHaveProperty('runtime_session_hint');
   });
 });

@@ -22,10 +22,27 @@ const compat = new FlatCompat({
   allConfig: js.configs.all,
 });
 
+const tenantModelRestrictions = [
+  {
+    selector: "CallExpression[callee.property.name='bulkSave']",
+    message:
+      'Avoid Model.bulkSave() — it derives writes and delegates to bulkWrite() after running save hooks, but without query middleware to scope the generated write filters. Use create()/insertMany() or tenantSafeBulkWrite() instead.',
+  },
+  {
+    selector: "CallExpression[callee.property.name='watch']",
+    message:
+      "Avoid Model.watch() — a change stream opens outside query middleware, so the tenant isolation plugin cannot scope it and it emits every tenant's events. A change stream requires a justified inline exemption documenting its system context and explicit tenantId $match guard.",
+  },
+  {
+    selector: "CallExpression[callee.property.name='estimatedDocumentCount']",
+    message:
+      'Avoid Model.estimatedDocumentCount() — it reads collection metadata and takes no filter, so it always returns the count across every tenant. Use countDocuments() for a tenant-scoped count.',
+  },
+];
+
 export default [
   {
     ignores: [
-      'client/vite.config.ts',
       'client/dist/**/*',
       'client/public/**/*',
       'client/coverage/**/*',
@@ -34,12 +51,17 @@ export default [
       'packages/api/dist/**/*',
       'packages/api/test_bundle/**/*',
       'api/demo/**/*',
+      'packages/client/dist/**/*',
       'packages/data-provider/types/**/*',
       'packages/data-provider/dist/**/*',
       'packages/data-provider/test_bundle/**/*',
+      'packages/data-schemas/dist/**/*',
+      'packages/data-schemas/misc/**/*',
       'data-node/**/*',
       'meili_data/**/*',
       '**/node_modules/**/*',
+      'venv/**/*',
+      '.devcontainer/**/*',
     ],
   },
   ...fixupConfigRules(
@@ -117,7 +139,7 @@ export default [
       'jsx-a11y/img-redundant-alt': 'off',
       'jsx-a11y/no-noninteractive-tabindex': 'off',
       // common rules
-      'no-nested-ternary': 'warn',
+      'no-nested-ternary': 'error',
       'no-constant-binary-expression': 'warn',
       'no-unused-vars': [
         'warn',
@@ -128,7 +150,8 @@ export default [
         },
       ],
       'no-console': 'off',
-      'import/no-cycle': 'error',
+      // Import cycles are checked by config/circular-deps.mjs over the bundler graph;
+      // `import/no-cycle` re-walked that graph from every file (80% of a full-tree lint).
       'import/no-self-import': 'error',
       'import/extensions': 'off',
       'no-promise-executor-return': 'off',
@@ -166,7 +189,7 @@ export default [
     },
   },
   {
-    files: ['**/rollup.config.js', '**/.eslintrc.js', '**/jest.config.js'],
+    files: ['**/.eslintrc.js', '**/jest.config.js', 'client/vite.config.ts'],
     languageOptions: {
       globals: {
         ...globals.node,
@@ -213,7 +236,8 @@ export default [
     })),
   {
     files: ['**/*.ts', '**/*.tsx'],
-    ignores: ['packages/**/*'],
+    // e2e specs keep only the non-type-checked recommended rules from the block above.
+    ignores: ['packages/**/*', 'client/vite.config.ts', 'e2e/**/*'],
     plugins: {
       '@typescript-eslint': typescriptEslintEslintPlugin,
       jest: fixupPluginRules(jest),
@@ -222,9 +246,6 @@ export default [
       parser: tsParser,
       ecmaVersion: 5,
       sourceType: 'script',
-      parserOptions: {
-        project: './client/tsconfig.json',
-      },
     },
     rules: {
       // i18n
@@ -236,6 +257,7 @@ export default [
         },
       ],
       //
+      'lines-between-class-members': ['error', 'always', { exceptAfterSingleLine: true }],
       '@typescript-eslint/no-unused-expressions': 'off',
       '@typescript-eslint/no-unused-vars': [
         'warn',
@@ -246,8 +268,6 @@ export default [
         },
       ],
       '@typescript-eslint/no-explicit-any': 'off',
-      '@typescript-eslint/no-unnecessary-condition': 'off',
-      '@typescript-eslint/strict-boolean-expressions': 'off',
       '@typescript-eslint/ban-ts-comment': 'off',
       // React
       'react/no-unknown-property': 'warn',
@@ -255,7 +275,6 @@ export default [
       'react-hooks/exhaustive-deps': 'warn',
       // General
       'no-constant-binary-expression': 'off',
-      'import/no-cycle': 'off',
     },
   },
   {
@@ -265,9 +284,16 @@ export default [
       parser: tsParser,
       ecmaVersion: 'latest',
       sourceType: 'module',
-      parserOptions: {
-        project: './packages/data-provider/tsconfig.json',
-      },
+    },
+    rules: {
+      '@typescript-eslint/no-unused-vars': [
+        'warn',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_',
+        },
+      ],
     },
   },
   {
@@ -275,6 +301,18 @@ export default [
   },
   {
     files: ['./packages/api/**/*.ts'],
+    rules: {
+      'lines-between-class-members': ['error', 'always', { exceptAfterSingleLine: true }],
+      '@typescript-eslint/no-unused-vars': [
+        'warn',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_',
+          destructuredArrayIgnorePattern: '^_',
+        },
+      ],
+    },
   },
   {
     files: ['./config/translations/**/*.ts'],
@@ -282,9 +320,6 @@ export default [
       parser: tsParser,
       ecmaVersion: 5,
       sourceType: 'script',
-      parserOptions: {
-        project: './config/translations/tsconfig.json',
-      },
     },
   },
   {
@@ -292,9 +327,6 @@ export default [
     languageOptions: {
       ecmaVersion: 5,
       sourceType: 'script',
-      parserOptions: {
-        project: './packages/data-provider/tsconfig.spec.json',
-      },
     },
   },
   {
@@ -302,9 +334,6 @@ export default [
     languageOptions: {
       ecmaVersion: 5,
       sourceType: 'script',
-      parserOptions: {
-        project: './packages/data-provider/tsconfig.spec.json',
-      },
     },
   },
   {
@@ -312,21 +341,56 @@ export default [
     languageOptions: {
       ecmaVersion: 5,
       sourceType: 'script',
-      parserOptions: {
-        project: './packages/api/tsconfig.spec.json',
-      },
     },
   },
   {
-    // **New Data-schemas configuration block**
+    // **Data-schemas — shared rules for all TS files**
     files: ['./packages/data-schemas/**/*.ts'],
     languageOptions: {
       parser: tsParser,
       ecmaVersion: 'latest',
       sourceType: 'module',
-      parserOptions: {
-        project: './packages/data-schemas/tsconfig.json',
-      },
+    },
+    rules: {
+      '@typescript-eslint/no-unused-vars': [
+        'warn',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_',
+          destructuredArrayIgnorePattern: '^_',
+        },
+      ],
+    },
+  },
+  {
+    files: ['packages/data-schemas/**/*.ts', 'packages/api/**/*.{ts,js}', 'api/**/*.{ts,js}'],
+    ignores: ['**/*.spec.{ts,js}', '**/*.test.{ts,js}'],
+    rules: {
+      'no-restricted-syntax': ['error', ...tenantModelRestrictions],
+    },
+  },
+  {
+    // **Data-schemas — ban model APIs that bypass tenant isolation in production code**
+    // Raw driver calls bypass the plugin; bulkSave also bypasses query filter scoping.
+    // Tests and the tenantSafeBulkWrite wrapper itself are excluded.
+    files: ['./packages/data-schemas/**/*.ts'],
+    ignores: ['**/*.spec.ts', '**/*.test.ts', '**/utils/tenantBulkWrite.ts'],
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: "CallExpression[callee.property.name='bulkWrite']",
+          message:
+            'Use tenantSafeBulkWrite() instead of Model.bulkWrite() — Mongoose middleware does not fire for bulkWrite, so the tenant isolation plugin cannot intercept it.',
+        },
+        {
+          selector: "MemberExpression[property.name='collection'][parent.type='MemberExpression']",
+          message:
+            'Avoid Model.collection.* — raw driver calls bypass all Mongoose middleware including tenant isolation. Use Mongoose model methods or tenantSafeBulkWrite() instead.',
+        },
+        ...tenantModelRestrictions,
+      ],
     },
   },
 ];

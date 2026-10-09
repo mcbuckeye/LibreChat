@@ -2,14 +2,18 @@ services:
   api:
     build:
       context: ./build-context
+      args:
+        BUILD_COMMIT: ${MYGPT_BUILD_COMMIT:-}
+        BUILD_BRANCH: ${MYGPT_BUILD_BRANCH:-}
     restart: unless-stopped
     depends_on:
       - mongodb
       - meilisearch
+      - rag_api
     env_file:
       - ./runtime.env
     ports:
-      - "127.0.0.1:3080:3080"
+      - "127.0.0.1:3081:3080"
     healthcheck:
       test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3080/health').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
       interval: 5s
@@ -22,24 +26,56 @@ services:
       - ../librechat.yaml:/app/librechat.yaml:ro
       - uploads:/app/uploads
       - images:/app/client/public/images
-      - logs:/app/api/logs
+      - logs:/app/logs
+      - skills:/app/skill
+      - runtime-data:/app/data
   mongodb:
-    image: mongo:7.0
+    image: mongo:8.0.20
     restart: unless-stopped
     ports:
-      - "127.0.0.1:27018:27017"
+      - "127.0.0.1:27019:27017"
     volumes:
       - mongodb:/data/db
   meilisearch:
-    image: getmeili/meilisearch:v1.12.3
+    image: getmeili/meilisearch:v1.35.1
     restart: unless-stopped
     ports:
-      - "127.0.0.1:7701:7700"
+      - "127.0.0.1:7702:7700"
     environment:
       MEILI_NO_ANALYTICS: "true"
       MEILI_MASTER_KEY: mygpt2-local-search-key
     volumes:
       - meilisearch:/meili_data
+  vectordb:
+    image: pgvector/pgvector:0.8.0-pg15-trixie
+    restart: unless-stopped
+    env_file:
+      - ./runtime.env
+    environment:
+      POSTGRES_DB: mydatabase
+      POSTGRES_USER: myuser
+    volumes:
+      - vectordb:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U myuser -d mydatabase"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+  rag_api:
+    image: registry.librechat.ai/librechat-ai/librechat-rag-api-dev-lite@sha256:a62ce2221b43a9bb57fa6cb733e7047c80132960272c33d5704028f3071a1251
+    restart: unless-stopped
+    depends_on:
+      vectordb:
+        condition: service_healthy
+    env_file:
+      - ./runtime.env
+    environment:
+      DB_HOST: vectordb
+      POSTGRES_DB: mydatabase
+      POSTGRES_USER: myuser
+      RAG_PORT: "8000"
+    volumes:
+      - rag-uploads:/app/uploads
   dashboard:
     build:
       context: ../flask-app
@@ -48,7 +84,7 @@ services:
     depends_on:
       - mongodb
     ports:
-      - "127.0.0.1:8082:8082"
+      - "127.0.0.1:8083:8082"
     volumes:
       - ../flask-app:/app
 volumes:
@@ -57,3 +93,7 @@ volumes:
   logs:
   mongodb:
   meilisearch:
+  skills:
+  runtime-data:
+  vectordb:
+  rag-uploads:

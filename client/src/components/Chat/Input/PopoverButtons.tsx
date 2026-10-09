@@ -1,10 +1,10 @@
 import { useRecoilState } from 'recoil';
 import { EModelEndpoint, SettingsViews } from 'librechat-data-provider';
-import { Button, MessagesSquared, GPTIcon, AssistantIcon, DataIcon } from '@librechat/client';
+import { Button, MessagesSquared, AssistantIcon, DataIcon } from '@librechat/client';
 import type { ReactNode } from 'react';
 import { useChatContext } from '~/Providers';
 import { useLocalize } from '~/hooks';
-import { cn } from '~/utils/';
+import { cn } from '~/utils';
 import store from '~/store';
 
 type TPopoverButton = {
@@ -28,14 +28,8 @@ export default function PopoverButtons({
   endpointType?: EModelEndpoint | string | null;
   model?: string | null;
 }) {
-  const {
-    conversation,
-    optionSettings,
-    setOptionSettings,
-    showAgentSettings,
-    setShowAgentSettings,
-  } = useChatContext();
   const localize = useLocalize();
+  const { conversation, optionSettings, setOptionSettings } = useChatContext();
   const [settingsView, setSettingsView] = useRecoilState(store.currentSettingsView);
 
   const { model: _model, endpoint: _endpoint, endpointType } = conversation ?? {};
@@ -62,19 +56,6 @@ export default function PopoverButtons({
         buttonClass: isGenerativeModel === true || isTextModel ? 'disabled' : '',
         handler: triggerExamples,
         icon: <MessagesSquared className={cn('mr-1 w-[14px]', iconClass)} />,
-      },
-    ],
-    [EModelEndpoint.gptPlugins]: [
-      {
-        label: localize(
-          showAgentSettings ? 'com_show_completion_settings' : 'com_show_agent_settings',
-        ),
-        buttonClass: '',
-        handler: () => {
-          setSettingsView(SettingsViews.default);
-          setShowAgentSettings((prev) => !prev);
-        },
-        icon: <GPTIcon className={cn('mr-1 w-[14px]', iconClass)} size={24} />,
       },
     ],
   };
@@ -121,8 +102,8 @@ export default function PopoverButtons({
             type="button"
             className={cn(
               button.buttonClass,
-              'border border-gray-300/50 focus:ring-1 focus:ring-green-500/90 dark:border-gray-500/50 dark:focus:ring-green-500',
-              'ml-1 h-full bg-transparent px-2 py-1 text-xs font-normal text-black hover:bg-gray-100 hover:text-black dark:bg-transparent dark:text-white dark:hover:bg-gray-600 dark:hover:text-white',
+              'border border-border-medium focus:ring-1 focus:ring-ring-primary',
+              'ml-1 h-full bg-transparent px-2 py-1 text-xs font-normal text-text-primary hover:bg-surface-hover',
               buttonClass ?? '',
             )}
             onClick={button.handler}
@@ -140,8 +121,8 @@ export default function PopoverButtons({
               type="button"
               className={cn(
                 button.buttonClass,
-                'flex justify-center border border-gray-300/50 focus:ring-1 focus:ring-green-500/90 dark:border-gray-500/50 dark:focus:ring-green-500',
-                'h-full w-full bg-transparent px-2 py-1 text-xs font-normal text-black hover:bg-gray-100 hover:text-black dark:bg-transparent dark:text-white dark:hover:bg-gray-600 dark:hover:text-white',
+                'flex justify-center border border-border-medium focus:ring-1 focus:ring-ring-primary',
+                'h-full w-full bg-transparent px-2 py-1 text-xs font-normal text-text-primary hover:bg-surface-hover',
                 buttonClass ?? '',
               )}
               onClick={button.handler}

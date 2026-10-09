@@ -7,30 +7,30 @@ const {
 
 // Mock dependencies
 jest.mock('~/models', () => ({
-  Files: {
-    find: jest.fn().mockResolvedValue([]),
-  },
-}));
-
-jest.mock('~/models/Role', () => ({
+  getFiles: jest.fn().mockResolvedValue([]),
   getRoleByName: jest.fn(),
 }));
 
-jest.mock('@librechat/api', () => ({
-  checkAccess: jest.fn().mockResolvedValue(true),
-}));
+jest.mock('@librechat/api', () => {
+  const { applyCitationLimits, selectFileCitationSources } = jest.requireActual('@librechat/api');
+  return {
+    applyCitationLimits,
+    checkAccess: jest.fn().mockResolvedValue(true),
+    selectFileCitationSources,
+  };
+});
 
-jest.mock('~/server/services/Config/getCustomConfig', () => ({
-  getCustomConfig: jest.fn().mockResolvedValue({
-    endpoints: {
-      agents: {
-        maxCitations: 30,
-        maxCitationsPerFile: 5,
-        minRelevanceScore: 0.45,
-      },
+jest.mock('~/cache/getLogStores', () => () => ({
+  get: jest.fn().mockResolvedValue({
+    agents: {
+      maxCitations: 30,
+      maxCitationsPerFile: 5,
+      minRelevanceScore: 0.45,
     },
     fileStrategy: 'local',
   }),
+  set: jest.fn(),
+  delete: jest.fn(),
 }));
 
 jest.mock('~/config', () => ({
@@ -46,6 +46,17 @@ describe('processFileCitations', () => {
     user: {
       id: 'user123',
     },
+  };
+
+  const mockAppConfig = {
+    endpoints: {
+      agents: {
+        maxCitations: 30,
+        maxCitationsPerFile: 5,
+        minRelevanceScore: 0.45,
+      },
+    },
+    fileStrategy: 'local',
   };
 
   const mockMetadata = {
@@ -85,6 +96,7 @@ describe('processFileCitations', () => {
         toolCallId: 'call_123',
         metadata: mockMetadata,
         user: mockReq.user,
+        appConfig: mockAppConfig,
       });
 
       expect(result).toBeTruthy();
@@ -100,6 +112,7 @@ describe('processFileCitations', () => {
         toolCallId: 'call_123',
         metadata: mockMetadata,
         user: mockReq.user,
+        appConfig: mockAppConfig,
       });
 
       expect(result).toBeNull();
@@ -127,6 +140,7 @@ describe('processFileCitations', () => {
         toolCallId: 'call_123',
         metadata: mockMetadata,
         user: mockReq.user,
+        appConfig: mockAppConfig,
       });
 
       expect(result).toBeNull();
@@ -138,6 +152,7 @@ describe('processFileCitations', () => {
         toolCallId: 'call_123',
         metadata: mockMetadata,
         user: mockReq.user,
+        appConfig: mockAppConfig,
       });
 
       expect(result).toBeNull();
@@ -164,7 +179,7 @@ describe('processFileCitations', () => {
   });
 
   describe('enhanceSourcesWithMetadata', () => {
-    const { Files } = require('~/models');
+    const { getFiles } = require('~/models');
     const mockCustomConfig = {
       fileStrategy: 'local',
     };
@@ -189,7 +204,7 @@ describe('processFileCitations', () => {
         },
       ];
 
-      Files.find.mockResolvedValue([
+      getFiles.mockResolvedValue([
         {
           file_id: 'file_123',
           filename: 'example_from_db.pdf',
@@ -204,7 +219,7 @@ describe('processFileCitations', () => {
 
       const result = await enhanceSourcesWithMetadata(sources, mockCustomConfig);
 
-      expect(Files.find).toHaveBeenCalledWith({ file_id: { $in: ['file_123', 'file_456'] } });
+      expect(getFiles).toHaveBeenCalledWith({ file_id: { $in: ['file_123', 'file_456'] } });
       expect(result).toHaveLength(2);
 
       expect(result[0]).toEqual({
@@ -243,7 +258,7 @@ describe('processFileCitations', () => {
         },
       ];
 
-      Files.find.mockResolvedValue([
+      getFiles.mockResolvedValue([
         {
           file_id: 'file_123',
           filename: 'example_from_db.pdf',
@@ -277,7 +292,7 @@ describe('processFileCitations', () => {
         },
       ];
 
-      Files.find.mockResolvedValue([]);
+      getFiles.mockResolvedValue([]);
 
       const result = await enhanceSourcesWithMetadata(sources, mockCustomConfig);
 
@@ -302,7 +317,7 @@ describe('processFileCitations', () => {
         },
       ];
 
-      Files.find.mockRejectedValue(new Error('Database error'));
+      getFiles.mockRejectedValue(new Error('Database error'));
 
       const result = await enhanceSourcesWithMetadata(sources, mockCustomConfig);
 
@@ -324,14 +339,14 @@ describe('processFileCitations', () => {
         { fileId: 'file_456', fileName: 'doc2.pdf', relevance: 0.7, type: 'file' },
       ];
 
-      Files.find.mockResolvedValue([
+      getFiles.mockResolvedValue([
         { file_id: 'file_123', filename: 'document1.pdf', source: 's3' },
         { file_id: 'file_456', filename: 'document2.pdf', source: 'local' },
       ]);
 
       await enhanceSourcesWithMetadata(sources, mockCustomConfig);
 
-      expect(Files.find).toHaveBeenCalledWith({ file_id: { $in: ['file_123', 'file_456'] } });
+      expect(getFiles).toHaveBeenCalledWith({ file_id: { $in: ['file_123', 'file_456'] } });
     });
   });
 });

@@ -1,5 +1,5 @@
 import { Schema } from 'mongoose';
-import { SystemRoles } from 'librechat-data-provider';
+import { SystemRoles, STATEFUL_CODE_ENVIRONMENTS } from 'librechat-data-provider';
 import { IUser } from '~/types';
 
 // Session sub-schema
@@ -23,7 +23,7 @@ const BackupCodeSchema = new Schema(
   { _id: false },
 );
 
-const userSchema = new Schema<IUser>(
+const userSchema: Schema<IUser> = new Schema<IUser>(
   {
     name: {
       type: String,
@@ -37,7 +37,6 @@ const userSchema = new Schema<IUser>(
       type: String,
       required: [true, "can't be blank"],
       lowercase: true,
-      unique: true,
       match: [/\S+@\S+\.\S+/, 'is invalid'],
       index: true,
     },
@@ -68,43 +67,30 @@ const userSchema = new Schema<IUser>(
     },
     googleId: {
       type: String,
-      unique: true,
-      sparse: true,
     },
     facebookId: {
       type: String,
-      unique: true,
-      sparse: true,
     },
     openidId: {
       type: String,
-      unique: true,
-      sparse: true,
+    },
+    openidIssuer: {
+      type: String,
     },
     samlId: {
       type: String,
-      unique: true,
-      sparse: true,
     },
     ldapId: {
       type: String,
-      unique: true,
-      sparse: true,
     },
     githubId: {
       type: String,
-      unique: true,
-      sparse: true,
     },
     discordId: {
       type: String,
-      unique: true,
-      sparse: true,
     },
     appleId: {
       type: String,
-      unique: true,
-      sparse: true,
     },
     plugins: {
       type: Array,
@@ -121,6 +107,15 @@ const userSchema = new Schema<IUser>(
       type: [BackupCodeSchema],
       select: false,
     },
+    pendingTotpSecret: {
+      type: String,
+      select: false,
+    },
+    pendingBackupCodes: {
+      type: [BackupCodeSchema],
+      select: false,
+      default: undefined,
+    },
     refreshToken: {
       type: [SessionSchema],
     },
@@ -132,22 +127,110 @@ const userSchema = new Schema<IUser>(
       type: Boolean,
       default: false,
     },
+    termsAcceptedAt: {
+      type: Date,
+      default: null,
+    },
+    agentTriggerDeletionStartedAt: {
+      type: Date,
+      select: false,
+    },
+    subagentAdmissionFences: {
+      type: [
+        {
+          token: { type: String, required: true },
+          expiresAt: { type: Date, required: true },
+        },
+      ],
+      _id: false,
+      select: false,
+      default: undefined,
+    },
     personalization: {
       type: {
         memories: {
           type: Boolean,
           default: true,
         },
+        statefulCodeEnvironment: {
+          type: String,
+          enum: STATEFUL_CODE_ENVIRONMENTS,
+          default: 'user',
+        },
       },
       default: {},
+    },
+    favorites: {
+      type: [
+        {
+          _id: false,
+          agentId: { type: String, maxlength: 256 },
+          model: { type: String, maxlength: 256 },
+          endpoint: { type: String, maxlength: 256 },
+          spec: { type: String, maxlength: 256 },
+        },
+      ],
+      default: [],
+    },
+    /** Display order for the sidebar's Pinned section: favorite and pinned-chat
+     *  entry keys interleaved (`agent:`, `spec:`, `model:`, `convo:` prefixes).
+     *  Keys whose item no longer exists are ignored; unlisted items keep their
+     *  natural order after the listed ones. */
+    pinnedOrder: {
+      type: [String],
+      default: [],
+      /** Display-only, and allowed to grow large. Every authentication request
+       *  loads the user document, so leaving this selected would put hundreds
+       *  of kilobytes on paths that never read it. The pinned-order handler
+       *  asks for it explicitly with `+pinnedOrder`. */
+      select: false,
+    },
+    skillStates: {
+      type: Map,
+      of: Boolean,
+      default: () => new Map(),
     },
     /** Field for external source identification (for consistency with TPrincipal schema) */
     idOnTheSource: {
       type: String,
       sparse: true,
     },
+    tenantId: {
+      type: String,
+      index: true,
+    },
   },
   { timestamps: true },
 );
+
+userSchema.index({ email: 1, tenantId: 1 }, { unique: true });
+userSchema.index({ role: 1, tenantId: 1 });
+userSchema.index({ idOnTheSource: 1, openidIssuer: 1, tenantId: 1 });
+
+const oAuthIdFields = [
+  'googleId',
+  'facebookId',
+  'openidId',
+  'samlId',
+  'ldapId',
+  'githubId',
+  'discordId',
+  'appleId',
+] as const;
+
+for (const field of oAuthIdFields) {
+  if (field === 'openidId') {
+    userSchema.index(
+      { openidId: 1, openidIssuer: 1, tenantId: 1 },
+      { unique: true, partialFilterExpression: { openidId: { $exists: true } } },
+    );
+    continue;
+  }
+
+  userSchema.index(
+    { [field]: 1, tenantId: 1 },
+    { unique: true, partialFilterExpression: { [field]: { $exists: true } } },
+  );
+}
 
 export default userSchema;

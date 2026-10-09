@@ -1,13 +1,31 @@
-import type { FC } from 'react';
+import { useRef, useState } from 'react';
+import { Trans } from 'react-i18next';
+import { useRecoilValue } from 'recoil';
 import { BookCopy } from 'lucide-react';
-import { TooltipAnchor } from '@librechat/client';
+import { tConvoUpdateSchema } from 'librechat-data-provider';
 import { Content, Portal, Root, Trigger } from '@radix-ui/react-popover';
+import {
+  Button,
+  OGDialog,
+  TooltipAnchor,
+  OGDialogTitle,
+  OGDialogHeader,
+  OGDialogContent,
+} from '@librechat/client';
+import type { TPreset } from 'librechat-data-provider';
+import type { FC } from 'react';
+import { SaveAsPresetDialog } from '~/components/Endpoints';
 import { EditPresetDialog, PresetItems } from './Presets';
 import { useLocalize, usePresets } from '~/hooks';
 import { useChatContext } from '~/Providers';
+import store from '~/store';
 
 const PresetsMenu: FC = () => {
   const localize = useLocalize();
+  const presetsMenuTriggerRef = useRef<HTMLDivElement>(null);
+  const [saveAsDialogOpen, setSaveAsDialogOpen] = useState(false);
+  const [presetToSave, setPresetToSave] = useState<TPreset | null>(null);
+  const { conversation } = useChatContext();
   const {
     presetsQuery,
     onSetDefaultPreset,
@@ -18,52 +36,118 @@ const PresetsMenu: FC = () => {
     onDeletePreset,
     submitPreset,
     exportPreset,
+    showDeleteDialog,
+    setShowDeleteDialog,
+    presetToDelete,
+    confirmDeletePreset,
   } = usePresets();
-  const { preset } = useChatContext();
+  const presetToEdit = useRecoilValue(store.presetByIndex(0));
+
+  const openSaveAsDialog = () => {
+    if (!conversation) {
+      return;
+    }
+    setPresetToSave(tConvoUpdateSchema.parse({ ...conversation }) as TPreset);
+    setSaveAsDialogOpen(true);
+  };
+
+  const handleDeleteDialogChange = (open: boolean) => {
+    setShowDeleteDialog(open);
+    if (!open && presetsMenuTriggerRef.current) {
+      setTimeout(() => {
+        presetsMenuTriggerRef.current?.focus();
+      }, 0);
+    }
+  };
+
   return (
     <Root>
       <Trigger asChild>
         <TooltipAnchor
-          id="presets-button"
-          aria-label={localize('com_endpoint_examples')}
+          ref={presetsMenuTriggerRef}
           description={localize('com_endpoint_examples')}
-          tabIndex={0}
-          role="button"
-          data-testid="presets-button"
-          className="inline-flex size-10 flex-shrink-0 items-center justify-center rounded-xl border border-border-light bg-transparent text-text-primary transition-all ease-in-out hover:bg-surface-tertiary disabled:pointer-events-none disabled:opacity-50 radix-state-open:bg-surface-tertiary"
-        >
-          <BookCopy size={16} aria-label="Preset Icon" />
-        </TooltipAnchor>
+          render={
+            <Button
+              size="icon"
+              variant="outline"
+              tabIndex={0}
+              id="presets-button"
+              data-testid="presets-button"
+              aria-label={localize('com_endpoint_examples')}
+              className="h-9 w-9 shrink-0 rounded-theme-control bg-presentation duration-0 hover:bg-surface-hover radix-state-open:bg-surface-active-alt"
+            >
+              <BookCopy className="icon-md" aria-hidden="true" />
+            </Button>
+          }
+        ></TooltipAnchor>
       </Trigger>
       <Portal>
-        <div
-          style={{
-            position: 'fixed',
-            left: '0px',
-            top: '0px',
-            transform: 'translate3d(268px, 50px, 0px)',
-            minWidth: 'max-content',
-            zIndex: 'auto',
-          }}
+        <Content
+          side="bottom"
+          align="center"
+          sideOffset={8}
+          collisionPadding={16}
+          aria-label={localize('com_endpoint_examples')}
+          className="z-50 max-h-[495px] overflow-x-hidden rounded-theme-surface border border-border-light bg-presentation text-text-primary shadow-lg md:min-w-[400px]"
         >
-          <Content
-            side="bottom"
-            align="center"
-            className="mt-2 max-h-[495px] overflow-x-hidden rounded-lg border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-700 dark:text-white md:min-w-[400px]"
-          >
-            <PresetItems
-              presets={presetsQuery.data}
-              onSetDefaultPreset={onSetDefaultPreset}
-              onSelectPreset={onSelectPreset}
-              onChangePreset={onChangePreset}
-              onDeletePreset={onDeletePreset}
-              clearAllPresets={clearAllPresets}
-              onFileSelected={onFileSelected}
-            />
-          </Content>
-        </div>
+          <PresetItems
+            presets={presetsQuery.data}
+            onSetDefaultPreset={onSetDefaultPreset}
+            onSelectPreset={onSelectPreset}
+            onChangePreset={onChangePreset}
+            onDeletePreset={onDeletePreset}
+            clearAllPresets={clearAllPresets}
+            onFileSelected={onFileSelected}
+            onSaveAsPreset={conversation ? openSaveAsDialog : undefined}
+          />
+        </Content>
       </Portal>
-      {preset && <EditPresetDialog submitPreset={submitPreset} exportPreset={exportPreset} />}
+      {presetToSave && (
+        <SaveAsPresetDialog
+          open={saveAsDialogOpen}
+          onOpenChange={setSaveAsDialogOpen}
+          preset={presetToSave}
+        />
+      )}
+      {presetToEdit && (
+        <EditPresetDialog
+          submitPreset={submitPreset}
+          exportPreset={exportPreset}
+          triggerRef={presetsMenuTriggerRef}
+        />
+      )}
+      {presetToDelete && (
+        <OGDialog open={showDeleteDialog} onOpenChange={handleDeleteDialogChange}>
+          <OGDialogContent
+            title={localize('com_endpoint_preset_delete_confirm')}
+            className="w-11/12 max-w-md"
+            showCloseButton={false}
+          >
+            <OGDialogHeader>
+              <OGDialogTitle>{localize('com_ui_delete_preset')}</OGDialogTitle>
+            </OGDialogHeader>
+            <div className="w-full truncate">
+              <Trans
+                i18nKey="com_ui_delete_confirm_strong"
+                values={{ title: presetToDelete.title }}
+                components={{ strong: <strong /> }}
+              />
+            </div>
+            <div className="flex justify-end gap-4 pt-4">
+              <Button
+                aria-label="cancel"
+                variant="outline"
+                onClick={() => handleDeleteDialogChange(false)}
+              >
+                {localize('com_ui_cancel')}
+              </Button>
+              <Button variant="destructive" onClick={confirmDeletePreset}>
+                {localize('com_ui_delete')}
+              </Button>
+            </div>
+          </OGDialogContent>
+        </OGDialog>
+      )}
     </Root>
   );
 };

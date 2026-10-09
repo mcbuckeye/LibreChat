@@ -1,5 +1,5 @@
 const { FileSources } = require('librechat-data-provider');
-const { handleExistingUser } = require('./process');
+const { handleExistingUser, createSocialUser } = require('./process');
 
 jest.mock('~/server/services/Files/strategies', () => ({
   getStrategyFunctions: jest.fn(),
@@ -16,17 +16,62 @@ jest.mock('~/models', () => ({
 }));
 
 jest.mock('~/server/services/Config', () => ({
-  getBalanceConfig: jest.fn(),
+  getAppConfig: jest.fn().mockResolvedValue({}),
+}));
+
+jest.mock('@librechat/api', () => ({
+  getBalanceConfig: jest.fn(() => ({
+    enabled: false,
+  })),
 }));
 
 const { getStrategyFunctions } = require('~/server/services/Files/strategies');
 const { resizeAvatar } = require('~/server/services/Files/images/avatar');
-const { updateUser } = require('~/models');
+const { updateUser, createUser, getUserById } = require('~/models');
 
 describe('handleExistingUser', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     process.env.CDN_PROVIDER = FileSources.local;
+  });
+
+  it('should not process the avatar when the provider supplies no avatarUrl (local storage)', async () => {
+    const oldUser = {
+      _id: 'user123',
+      avatar: null,
+    };
+
+    await handleExistingUser(oldUser, null);
+
+    expect(resizeAvatar).not.toHaveBeenCalled();
+    expect(updateUser).not.toHaveBeenCalled();
+  });
+
+  it('should not process the avatar when the provider supplies no avatarUrl (non-local storage)', async () => {
+    process.env.CDN_PROVIDER = FileSources.s3;
+    const oldUser = {
+      _id: 'user123',
+      avatar: null,
+    };
+
+    await handleExistingUser(oldUser, undefined);
+
+    expect(resizeAvatar).not.toHaveBeenCalled();
+    expect(updateUser).not.toHaveBeenCalled();
+  });
+
+  it('should still update the email when the provider supplies no avatarUrl', async () => {
+    process.env.CDN_PROVIDER = FileSources.s3;
+    const oldUser = {
+      _id: 'user123',
+      avatar: null,
+      email: 'old@example.com',
+    };
+
+    await handleExistingUser(oldUser, null, undefined, 'new@example.com');
+
+    expect(resizeAvatar).not.toHaveBeenCalled();
+    expect(updateUser).toHaveBeenCalledWith('user123', { email: 'new@example.com' });
   });
 
   it('should handle null avatar without throwing error', async () => {
@@ -160,5 +205,103 @@ describe('handleExistingUser', () => {
 
     // This should throw an error when trying to access oldUser._id
     await expect(handleExistingUser(null, avatarUrl)).rejects.toThrow();
+  });
+
+  it('should update email when it has changed', async () => {
+    const oldUser = {
+      _id: 'user123',
+      email: 'old@example.com',
+      avatar: 'https://example.com/avatar.png?manual=true',
+    };
+    const avatarUrl = 'https://example.com/avatar.png';
+    const newEmail = 'new@example.com';
+
+    await handleExistingUser(oldUser, avatarUrl, {}, newEmail);
+
+    expect(updateUser).toHaveBeenCalledWith('user123', { email: 'new@example.com' });
+  });
+
+  it('should update both avatar and email when both have changed', async () => {
+    const oldUser = {
+      _id: 'user123',
+      email: 'old@example.com',
+      avatar: null,
+    };
+    const avatarUrl = 'https://example.com/new-avatar.png';
+    const newEmail = 'new@example.com';
+
+    await handleExistingUser(oldUser, avatarUrl, {}, newEmail);
+
+    expect(updateUser).toHaveBeenCalledWith('user123', {
+      avatar: avatarUrl,
+      email: 'new@example.com',
+    });
+  });
+
+  it('should not update email when it has not changed', async () => {
+    const oldUser = {
+      _id: 'user123',
+      email: 'same@example.com',
+      avatar: 'https://example.com/avatar.png?manual=true',
+    };
+    const avatarUrl = 'https://example.com/avatar.png';
+    const sameEmail = 'same@example.com';
+
+    await handleExistingUser(oldUser, avatarUrl, {}, sameEmail);
+
+    expect(updateUser).not.toHaveBeenCalled();
+  });
+
+  it('should trim email before comparison and update', async () => {
+    const oldUser = {
+      _id: 'user123',
+      email: 'test@example.com',
+      avatar: 'https://example.com/avatar.png?manual=true',
+    };
+    const avatarUrl = 'https://example.com/avatar.png';
+    const newEmailWithSpaces = '  newemail@example.com  ';
+
+    await handleExistingUser(oldUser, avatarUrl, {}, newEmailWithSpaces);
+
+    expect(updateUser).toHaveBeenCalledWith('user123', { email: 'newemail@example.com' });
+  });
+
+  it('should not update when email parameter is not provided', async () => {
+    const oldUser = {
+      _id: 'user123',
+      email: 'test@example.com',
+      avatar: 'https://example.com/avatar.png?manual=true',
+    };
+    const avatarUrl = 'https://example.com/avatar.png';
+
+    await handleExistingUser(oldUser, avatarUrl, {});
+
+    expect(updateUser).not.toHaveBeenCalled();
+  });
+});
+
+describe('createSocialUser', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    process.env.CDN_PROVIDER = FileSources.s3;
+    createUser.mockResolvedValue('newUser123');
+    getUserById.mockResolvedValue({ _id: 'newUser123' });
+  });
+
+  it('should not process the avatar when the provider supplies no avatarUrl', async () => {
+    await createSocialUser({
+      email: 'user@privaterelay.appleid.com',
+      avatarUrl: null,
+      provider: 'apple',
+      providerKey: 'appleId',
+      providerId: 'apple-sub-123',
+      username: 'user',
+      name: 'User',
+      emailVerified: true,
+    });
+
+    expect(resizeAvatar).not.toHaveBeenCalled();
+    expect(updateUser).not.toHaveBeenCalled();
+    expect(getUserById).toHaveBeenCalledWith('newUser123');
   });
 });

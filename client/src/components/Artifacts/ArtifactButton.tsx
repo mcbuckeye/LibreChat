@@ -3,18 +3,18 @@ import debounce from 'lodash/debounce';
 import { useLocation } from 'react-router-dom';
 import { useRecoilState, useSetRecoilState, useResetRecoilState } from 'recoil';
 import type { Artifact } from '~/common';
-import FilePreview from '~/components/Chat/Input/Files/FilePreview';
-import { getFileType, logger } from '~/utils';
-import { useLocalize } from '~/hooks';
+import ArtifactRow from '~/components/Chat/Messages/Content/Parts/ArtifactRow';
+import { artifactRowKind } from '~/utils/artifacts';
+import { logger, isArtifactRoute } from '~/utils';
 import store from '~/store';
 
 const ArtifactButton = ({ artifact }: { artifact: Artifact | null }) => {
-  const localize = useLocalize();
   const location = useLocation();
   const setVisible = useSetRecoilState(store.artifactsVisibility);
   const [artifacts, setArtifacts] = useRecoilState(store.artifactsState);
-  const setCurrentArtifactId = useSetRecoilState(store.currentArtifactId);
+  const [currentArtifactId, setCurrentArtifactId] = useRecoilState(store.currentArtifactId);
   const resetCurrentArtifactId = useResetRecoilState(store.currentArtifactId);
+  const isSelected = artifact?.id === currentArtifactId;
   const [visibleArtifacts, setVisibleArtifacts] = useRecoilState(store.visibleArtifacts);
 
   const debouncedSetVisibleRef = useRef(
@@ -36,7 +36,7 @@ const ArtifactButton = ({ artifact }: { artifact: Artifact | null }) => {
       return;
     }
 
-    if (!location.pathname.includes('/c/')) {
+    if (!isArtifactRoute(location.pathname)) {
       return;
     }
 
@@ -50,41 +50,33 @@ const ArtifactButton = ({ artifact }: { artifact: Artifact | null }) => {
   if (artifact === null || artifact === undefined) {
     return null;
   }
-  const fileType = getFileType('artifact');
 
+  const handleOpen = () => {
+    if (isSelected) {
+      resetCurrentArtifactId();
+      setVisible(false);
+      return;
+    }
+
+    setCurrentArtifactId(artifact.id);
+    setVisible(true);
+
+    if (artifacts?.[artifact.id] == null) {
+      setArtifacts(visibleArtifacts);
+    }
+  };
+
+  /* Model-authored artifacts have no file behind them — the panel's own
+   * `DownloadArtifact` serializes the (possibly edited) content, which
+   * needs the editor context this row doesn't sit in. */
   return (
-    <div className="group relative my-4 rounded-xl text-sm text-text-primary">
-      <button
-        type="button"
-        onClick={() => {
-          if (!location.pathname.includes('/c/')) {
-            return;
-          }
-          resetCurrentArtifactId();
-          setVisible(true);
-          if (artifacts?.[artifact.id] == null) {
-            setArtifacts(visibleArtifacts);
-          }
-          setTimeout(() => {
-            setCurrentArtifactId(artifact.id);
-          }, 15);
-        }}
-        className="relative overflow-hidden rounded-xl border border-border-medium transition-all duration-300 hover:border-border-xheavy hover:shadow-lg"
-      >
-        <div className="w-fit bg-surface-tertiary p-2">
-          <div className="flex flex-row items-center gap-2">
-            <FilePreview fileType={fileType} className="relative" />
-            <div className="overflow-hidden text-left">
-              <div className="truncate font-medium">{artifact.title}</div>
-              <div className="truncate text-text-secondary">
-                {localize('com_ui_artifact_click')}
-              </div>
-            </div>
-          </div>
-        </div>
-      </button>
-      <br />
-    </div>
+    <ArtifactRow
+      title={artifact.title ?? ''}
+      kind={artifactRowKind(artifact)}
+      isSelected={isSelected}
+      onOpen={handleOpen}
+      artifactId={artifact.id}
+    />
   );
 };
 

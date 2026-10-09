@@ -1,3 +1,5 @@
+import { AuthType } from 'librechat-data-provider';
+
 /**
  * Checks if the given value is truthy by being either the boolean `true` or a string
  * that case-insensitively matches 'true'.
@@ -26,12 +28,26 @@ export function isEnabled(value?: string | boolean | null | undefined): boolean 
 }
 
 /**
+ * Like {@link isEnabled}, but missing or blank values stay unset so the caller
+ * can apply its own default instead of forcing `false`.
+ */
+export function optionalEnabled(value?: string | boolean | null | undefined): boolean | undefined {
+  if (typeof value === 'boolean') {
+    return value;
+  }
+  if (typeof value !== 'string' || value.trim() === '') {
+    return undefined;
+  }
+  return isEnabled(value);
+}
+
+/**
  * Checks if the provided value is 'user_provided'.
  *
  * @param value - The value to check.
  * @returns - Returns true if the value is 'user_provided', otherwise false.
  */
-export const isUserProvided = (value?: string): boolean => value === 'user_provided';
+export const isUserProvided = (value?: string): boolean => value === AuthType.USER_PROVIDED;
 
 /**
  * @param values

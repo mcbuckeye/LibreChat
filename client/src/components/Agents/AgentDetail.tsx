@@ -1,7 +1,15 @@
 import React, { useRef } from 'react';
 import { Link } from 'lucide-react';
+import { Pin, PinOff } from 'lucide';
 import { useQueryClient } from '@tanstack/react-query';
-import { OGDialog, OGDialogContent, Button, useToastContext } from '@librechat/client';
+import {
+  OGDialog,
+  OGDialogContent,
+  Button,
+  MorphIcon,
+  TooltipAnchor,
+  useToastContext,
+} from '@librechat/client';
 import {
   QueryKeys,
   Constants,
@@ -11,9 +19,10 @@ import {
   AgentListResponse,
 } from 'librechat-data-provider';
 import type t from 'librechat-data-provider';
+import { renderAgentAvatar, clearMessagesCache, specDisplayFieldReset } from '~/utils';
+import { useLocalize, useDefaultConvo, useFavorites } from '~/hooks';
+import Description from '~/components/ui/Description';
 import { useChatContext } from '~/Providers';
-import { renderAgentAvatar } from '~/utils';
-import { useLocalize } from '~/hooks';
 
 interface SupportContact {
   name?: string;
@@ -34,11 +43,19 @@ interface AgentDetailProps {
  */
 const AgentDetail: React.FC<AgentDetailProps> = ({ agent, isOpen, onClose }) => {
   const localize = useLocalize();
-  // const navigate = useNavigate();
-  const { conversation, newConversation } = useChatContext();
+  const queryClient = useQueryClient();
   const { showToast } = useToastContext();
   const dialogRef = useRef<HTMLDivElement>(null);
-  const queryClient = useQueryClient();
+  const getDefaultConversation = useDefaultConvo();
+  const { conversation, newConversation } = useChatContext();
+  const { isFavoriteAgent, toggleFavoriteAgent } = useFavorites();
+  const isFavorite = isFavoriteAgent(agent?.id);
+
+  const handleFavoriteClick = () => {
+    if (agent) {
+      toggleFavoriteAgent(agent.id);
+    }
+  };
 
   /**
    * Navigate to chat with the selected agent
@@ -56,19 +73,26 @@ const AgentDetail: React.FC<AgentDetailProps> = ({ agent, isOpen, onClose }) => 
 
       localStorage.setItem(`${LocalStorageKeys.AGENT_ID_PREFIX}0`, agent.id);
 
-      queryClient.setQueryData<t.TMessage[]>(
-        [QueryKeys.messages, conversation?.conversationId ?? Constants.NEW_CONVO],
-        [],
-      );
+      clearMessagesCache(queryClient, conversation?.conversationId);
       queryClient.invalidateQueries([QueryKeys.messages]);
 
+      /** Template with agent configuration */
+      const template = {
+        conversationId: Constants.NEW_CONVO as string,
+        endpoint: EModelEndpoint.agents,
+        agent_id: agent.id,
+        title: localize('com_agents_chat_with', { name: agent.name || localize('com_ui_agent') }),
+        ...specDisplayFieldReset,
+      };
+
+      const currentConvo = getDefaultConversation({
+        conversation: { ...(conversation ?? {}), ...template },
+        preset: template,
+      });
+
       newConversation({
-        template: {
-          conversationId: Constants.NEW_CONVO as string,
-          endpoint: EModelEndpoint.agents,
-          agent_id: agent.id,
-          title: `Chat with ${agent.name || 'Agent'}`,
-        },
+        template: currentConvo,
+        preset: template,
       });
     }
   };
@@ -103,7 +127,7 @@ const AgentDetail: React.FC<AgentDetailProps> = ({ agent, isOpen, onClose }) => 
 
     if (name && email) {
       return (
-        <a href={`mailto:${email}`} className="text-primary hover:underline">
+        <a href={`mailto:${email}`} className="text-text-primary hover:underline">
           {name}
         </a>
       );
@@ -111,7 +135,7 @@ const AgentDetail: React.FC<AgentDetailProps> = ({ agent, isOpen, onClose }) => 
 
     if (email) {
       return (
-        <a href={`mailto:${email}`} className="text-primary hover:underline">
+        <a href={`mailto:${email}`} className="text-text-primary hover:underline">
           {email}
         </a>
       );
@@ -127,43 +151,63 @@ const AgentDetail: React.FC<AgentDetailProps> = ({ agent, isOpen, onClose }) => 
   return (
     <OGDialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <OGDialogContent ref={dialogRef} className="max-h-[90vh] w-11/12 max-w-lg overflow-y-auto">
-        {/* Copy link button - positioned next to close button */}
-        <Button
-          variant="ghost"
-          size="icon"
-          className="absolute right-11 top-4 h-4 w-4 rounded-sm p-0 opacity-70 ring-ring-primary ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-          aria-label={localize('com_agents_copy_link')}
-          onClick={handleCopyLink}
-          title={localize('com_agents_copy_link')}
-        >
-          <Link />
-        </Button>
-
-        {/* Agent avatar - top center */}
+        {/* Agent avatar */}
         <div className="mt-6 flex justify-center">{renderAgentAvatar(agent, { size: 'xl' })}</div>
 
-        {/* Agent name - center aligned below image */}
+        {/* Agent name */}
         <div className="mt-3 text-center">
           <h2 className="text-2xl font-bold text-text-primary">
             {agent?.name || localize('com_agents_loading')}
           </h2>
         </div>
 
-        {/* Contact info - center aligned below name */}
+        {/* Contact info */}
         {agent?.support_contact && formatContact() && (
           <div className="mt-1 text-center text-sm text-text-secondary">
             {localize('com_agents_contact')}: {formatContact()}
           </div>
         )}
 
-        {/* Agent description - below contact */}
-        <div className="mt-4 whitespace-pre-wrap px-6 text-center text-base text-text-primary">
-          {agent?.description}
-        </div>
+        {/* Agent description */}
+        <Description
+          description={agent?.description}
+          className="mt-4 whitespace-pre-wrap px-6 text-center text-base text-text-primary [&_a]:underline [&_a]:underline-offset-2 [&_img]:inline-block [&_img]:max-w-full"
+        />
 
         {/* Action button */}
-        <div className="mb-4 mt-6 flex justify-center">
-          <Button className="w-full max-w-xs" onClick={handleStartChat} disabled={!agent}>
+        <div className="mb-4 mt-6 flex justify-center gap-2">
+          <TooltipAnchor
+            description={isFavorite ? localize('com_ui_unpin') : localize('com_ui_pin')}
+            render={
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={handleFavoriteClick}
+                aria-label={isFavorite ? localize('com_ui_unpin') : localize('com_ui_pin')}
+              >
+                <MorphIcon icon={isFavorite ? PinOff : Pin} className="h-4 w-4" />
+              </Button>
+            }
+          />
+          <TooltipAnchor
+            description={localize('com_agents_copy_link')}
+            render={
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={handleCopyLink}
+                aria-label={localize('com_agents_copy_link')}
+              >
+                <Link className="h-4 w-4" aria-hidden="true" />
+              </Button>
+            }
+          />
+          <Button
+            variant="submit"
+            className="w-full max-w-xs"
+            onClick={handleStartChat}
+            disabled={!agent}
+          >
             {localize('com_agents_start_chat')}
           </Button>
         </div>

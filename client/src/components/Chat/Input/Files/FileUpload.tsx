@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { FileUp } from 'lucide-react';
-import { cn } from '~/utils/';
+import { Button } from '@librechat/client';
 import { useLocalize } from '~/hooks';
+import { cn } from '~/utils/';
 
 type FileUploadProps = {
   onFileSelected: (jsonData: Record<string, unknown>) => void;
@@ -24,7 +25,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
   text = null,
   id = '1',
 }) => {
-  const [statusColor, setStatusColor] = useState<string>('text-gray-600');
+  const [statusColor, setStatusColor] = useState<string>('text-text-secondary');
   const [status, setStatus] = useState<null | string>(null);
   const localize = useLocalize();
 
@@ -39,13 +40,13 @@ const FileUpload: React.FC<FileUploadProps> = ({
       const jsonData = JSON.parse(e.target?.result as string);
       if (validator && !validator(jsonData)) {
         setStatus('invalid');
-        setStatusColor('text-red-600');
+        setStatusColor('text-text-destructive');
         return;
       }
 
       if (validator) {
         setStatus('success');
-        setStatusColor('text-green-500 dark:text-green-500');
+        setStatusColor('text-status-success');
       }
 
       onFileSelected(jsonData);
@@ -62,17 +63,30 @@ const FileUpload: React.FC<FileUploadProps> = ({
     statusText = invalidText ?? localize('com_ui_upload_invalid');
   }
 
+  const handleClick = () => {
+    const fileInput = document.getElementById(`file-upload-${id}`) as HTMLInputElement;
+    if (fileInput) {
+      fileInput.click();
+    }
+  };
+
   return (
-    <label
-      htmlFor={`file-upload-${id}`}
-      className={cn(
-        'mr-1 flex h-auto cursor-pointer items-center rounded bg-transparent px-2 py-1 text-xs font-normal transition-colors hover:bg-gray-100 hover:text-green-600 dark:bg-transparent dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-green-500',
-        statusColor,
-        containerClassName,
-      )}
-    >
-      <FileUp className="mr-1 flex w-[22px] items-center stroke-1" />
-      <span className="flex text-xs">{statusText}</span>
+    <>
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        onClick={handleClick}
+        className={cn(
+          'mr-1 flex h-auto cursor-pointer items-center rounded bg-transparent px-2 py-1 text-xs font-normal text-text-secondary transition-colors hover:bg-surface-hover hover:text-status-success focus:ring-text-primary',
+          statusColor,
+          containerClassName,
+        )}
+        aria-label={statusText}
+      >
+        <FileUp className="mr-1 flex w-[22px] items-center stroke-1" aria-hidden="true" />
+        <span className="flex text-xs">{statusText}</span>
+      </Button>
       <input
         id={`file-upload-${id}`}
         value=""
@@ -80,8 +94,9 @@ const FileUpload: React.FC<FileUploadProps> = ({
         className={cn('hidden', className)}
         accept=".json"
         onChange={handleFileChange}
+        tabIndex={-1}
       />
-    </label>
+    </>
   );
 };
 

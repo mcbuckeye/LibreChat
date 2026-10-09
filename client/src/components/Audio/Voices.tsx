@@ -6,7 +6,7 @@ import { useLocalize, useTTSBrowser, useTTSExternal } from '~/hooks';
 import { logger } from '~/utils';
 import store from '~/store';
 
-export function BrowserVoiceDropdown() {
+export function BrowserVoiceDropdown({ disabled = false }: { disabled?: boolean }) {
   const localize = useLocalize();
   const { voices = [] } = useTTSBrowser();
   const [voice, setVoice] = useRecoilState(store.voice);
@@ -19,23 +19,27 @@ export function BrowserVoiceDropdown() {
     }
   };
 
+  const labelId = 'browser-voice-dropdown-label';
+
   return (
     <div className="flex items-center justify-between">
-      <div>{localize('com_nav_voice_select')}</div>
+      <div id={labelId}>{localize('com_nav_voice_select')}</div>
       <Dropdown
         key={`browser-voice-dropdown-${voices.length}`}
         value={voice ?? ''}
         options={voices}
         onChange={handleVoiceChange}
-        sizeClasses="min-w-[200px] !max-w-[400px] [--anchor-max-width:400px]"
+        sizeClasses="z-50 min-w-[200px] max-w-[400px]"
         testId="BrowserVoiceDropdown"
         className="z-50"
+        aria-labelledby={labelId}
+        disabled={disabled}
       />
     </div>
   );
 }
 
-export function ExternalVoiceDropdown() {
+export function ExternalVoiceDropdown({ disabled = false }: { disabled?: boolean }) {
   const localize = useLocalize();
   const { voices = [] } = useTTSExternal();
   const [voice, setVoice] = useRecoilState(store.voice);
@@ -48,17 +52,21 @@ export function ExternalVoiceDropdown() {
     }
   };
 
+  const labelId = 'external-voice-dropdown-label';
+
   return (
     <div className="flex items-center justify-between">
-      <div>{localize('com_nav_voice_select')}</div>
+      <div id={labelId}>{localize('com_nav_voice_select')}</div>
       <Dropdown
         key={`external-voice-dropdown-${voices.length}`}
         value={voice ?? ''}
         options={voices}
         onChange={handleVoiceChange}
-        sizeClasses="min-w-[200px] !max-w-[400px] [--anchor-max-width:400px]"
+        sizeClasses="z-50 min-w-[200px] max-w-[400px]"
         testId="ExternalVoiceDropdown"
         className="z-50"
+        aria-labelledby={labelId}
+        disabled={disabled}
       />
     </div>
   );
