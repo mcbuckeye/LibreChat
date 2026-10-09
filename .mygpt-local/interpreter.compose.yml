@@ -1,0 +1,7 @@
+services:
+  code-interpreter:
+    privileged: false
+    environment:
+      HOST_PATH: ${CODE_INTERPRETER_PROJECT_DIR:?Use start-interpreter.sh or set CODE_INTERPRETER_PROJECT_DIR}
+    ports: !override
+      - "127.0.0.1:8080:8080"

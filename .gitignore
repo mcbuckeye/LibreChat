@@ -67,8 +67,8 @@ bower_components/
 .flooignore
 
 #config file
-librechat.yaml
-librechat.yml
+# librechat.yaml
+# librechat.yml
 
 # Environment
 .npmrc
@@ -138,3 +138,11 @@ helm/**/.values.yaml
 /.tabnine/
 /.codeium
 *.local.md
+
+# Private local configuration and generated test artifacts
+/.mygpt-local/
+/mygpt2_certs/
+/mygpt2_certs_frida/
+__pycache__/
+*.pyc
+/client/output.txt

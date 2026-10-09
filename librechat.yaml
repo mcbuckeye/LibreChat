@@ -1,0 +1,151 @@
+# For more information:
+# https://www.librechat.ai/docs/configuration/librechat_yaml
+version: "1.2.8"
+cache: true
+
+interface:
+  endpointsMenu: true
+  modelSelect: true
+  parameters: true
+  sidePanel: true
+  presets: true
+  prompts: true
+  bookmarks: true
+  multiConvo: true
+  runCode: true
+  agents: true
+  termsOfService:
+    openNewTab: true
+    modalAcceptance: true
+    modalTitle: "MyGPT Terms of Service"
+    modalContent: |
+      ⚠️ **Important Data Privacy Notice**
+      Please do **not** upload, enter, or paste any patient data or other sensitive personal data into this AI system. This chatbot is designed for general internal use and is **not approved for handling personal health information (PHI)** or any other sensitive data under privacy regulations such as PIPL, HIPAA, GDPR, or similar laws.
+      By continuing, you acknowledge your responsibility to comply with BeOne Medicines’ data privacy and information security policies.
+      Be aware that AI can give incorrect answers and you should always carefully review any output before using it.
+
+endpoints:
+  agents:
+    disableBuilder: false
+    capabilities: ["execute_code", "tools","file_search","actions","artifacts","web_search"]
+
+  # OpenAI endpoint (uses OPENAI_API_KEY / OPENAI_MODELS from .env)
+  openAI:
+    titleConvo: true
+    titleModel: "gpt-4o-mini"
+
+  # Azure OpenAI endpoint group
+  azureOpenAI:
+    titleModel: "gpt-4o-mini"
+    titleConvo: true
+    groups:
+      - group: "my-eastus2"
+        apiKey: "${EASTUS2_API_KEY}"
+        instanceName: "bgservicemeopenai-prd"
+        version: "2023-03-15-preview"
+        models:
+          gpt-4o-mini:
+            deploymentName: "beigpt-mini"
+          gpt-4o:
+            deploymentName: "beigpt"
+
+  # Custom endpoint for Azure-hosted DeepSeek
+  custom:
+    - name: "Azure (DeepSeek)"
+      apiKey: "${AZURE_DEEPSEEK_API_KEY}"
+      baseURL: "https://DeepSeek-R1-vcglw.westus.models.ai.azure.com/v1/"
+      models:
+        default: ["DeepSeek-R1"]
+        fetch: false
+      titleConvo: true
+      titleModel: current_model
+      dropParams: ["stop","user","frequency_penalty","presence_penalty"]
+      modelDisplayLabel: "DeepSeek-R1"
+
+fileConfig:
+  endpoints:
+    # Configuration for agents endpoint (Code Interpreter)
+    agents:
+      disabled: false
+      fileLimit: 10
+      fileSizeLimit: 50
+      totalSizeLimit: 200
+      supportedMimeTypes:
+        - "image/.*"
+        - "image/png"
+        - "image/jpeg"
+        - "image/jpg"
+        - "image/gif"
+        - "image/webp"
+        - "image/bmp"
+        - "image/tiff"
+        - "text/plain"
+        - "text/.*"
+        - "text/csv"
+        - "application/json"
+        - "application/pdf"
+        - "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        - "application/vnd.ms-excel"
+        - "application/vnd.ms-excel.sheet.macroEnabled.12"
+        - "application/vnd.ms-excel.sheet.binary.macroEnabled.12"
+        - "application/octet-stream"
+        - "application/zip"
+
+    # Explicit file rules when using the OpenAI endpoint
+    openAI:
+      disabled: false
+      fileLimit: 5
+      fileSizeLimit: 50
+      totalSizeLimit: 150
+      supportedMimeTypes:
+        - "image/*"
+        - "text/plain"
+        - "text/.*"
+        - "text/csv"
+        - "application/json"
+        - "application/pdf"
+        - "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        - "application/vnd.ms-excel"
+        - "application/vnd.ms-excel.sheet.macroEnabled.12"
+        - "application/vnd.ms-excel.sheet.binary.macroEnabled.12"
+        - "application/octet-stream"
+        - "application/zip"
+
+    # Same rules for Azure OpenAI
+    azureOpenAI:
+      disabled: false
+      fileLimit: 5
+      fileSizeLimit: 50
+      totalSizeLimit: 150
+      supportedMimeTypes:
+        - "image/*"
+        - "text/plain"
+        - "text/.*"
+        - "text/csv"
+        - "application/json"
+        - "application/pdf"
+        - "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        - "application/vnd.ms-excel"
+        - "application/octet-stream"
+        - "application/zip"
+
+    # Same rules for custom endpoints (DeepSeek)
+    custom:
+      disabled: false
+      fileLimit: 5
+      fileSizeLimit: 50
+      totalSizeLimit: 150
+      supportedMimeTypes:
+        - "image/*"
+        - "text/plain"
+        - "text/.*"
+        - "text/csv"
+        - "application/json"
+        - "application/pdf"
+        - "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        - "application/vnd.ms-excel"
+        - "application/octet-stream"
+        - "application/zip"
+
+  # Global server-side file size cap (MB)
+  serverFileSizeLimit: 200

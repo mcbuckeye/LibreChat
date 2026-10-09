@@ -27,6 +27,7 @@ const { getUserPluginAuthValue } = require('~/server/services/PluginService');
 const { createMCPTool, createMCPTools } = require('~/server/services/MCP');
 const { loadAuthValues } = require('~/server/services/Tools/credentials');
 const { getCachedTools } = require('~/server/services/Config');
+const { normalizeCodeExecutionTool } = require('./codeExecution');
 
 /**
  * Validates the availability and authentication of tools for a user based on environment variables or user-specific plugin authentication values.
@@ -255,11 +256,13 @@ const loadTools = async ({
         if (toolContext) {
           toolContextMap[tool] = toolContext;
         }
-        const CodeExecutionTool = createCodeExecutionTool({
-          user_id: user,
-          files,
-          ...authValues,
-        });
+        const CodeExecutionTool = normalizeCodeExecutionTool(
+          createCodeExecutionTool({
+            user_id: user,
+            files,
+            ...authValues,
+          }),
+        );
         CodeExecutionTool.apiKey = codeApiKey;
         return CodeExecutionTool;
       };
