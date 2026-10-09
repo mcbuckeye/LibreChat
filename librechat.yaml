@@ -4,8 +4,7 @@ version: "1.3.17"
 cache: true
 
 interface:
-  schedules:
-    enabled: false
+  schedules: false
   endpointsMenu: true
   modelSelect: true
   parameters: true
