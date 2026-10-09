@@ -6,6 +6,7 @@ Validated locally October 9, 2026. The upgrade is based on the exact LibreChat `
 
 - LibreChat merge and customizations: `6f19dd000`.
 - MCP test assertion updated for the patched SDK's `string | URL` resource type: `088c3bcb7`.
+- Scheduling uses the supported `interface.schedules: false` configuration (`d2e8fb8df`), verified after an application restart by the absence of Scheduled chats in the browser. The running source image is `088c3bcb7`; YAML is mounted separately and includes this later configuration fix.
 - Custom interpreter compatibility snapshot: `cb5a53a`, branch `codex/librechat-v0.8.8`, in `/Users/stephenmclaughlin/Development/code-interpreter-mygpt2-upgrade`. This captures the required pre-existing custom API plus the compatibility changes. Its remote belongs to the original author; these commits have not been pushed there.
 - Application: [http://localhost:3081](http://localhost:3081). Reporting dashboard: [http://localhost:8083](http://localhost:8083). Custom interpreter: loopback port 8084.
 - Docker Compose project `mygpt2-upgrade`: source-built Node 24.16.0 application, MongoDB 8.0.20, Meilisearch 1.35.1, pgvector 0.8.0 on PostgreSQL 15, RAG API and Flask reporting. RAG image is pinned by digest in the local Compose configuration. Interpreter has a separate Compose project and source-built API image.
@@ -46,6 +47,7 @@ Total: **680 focused automated tests passed**, excluding repeated runs, plus the
 - Global conversation search found the verification response in Meilisearch.
 - Application, dashboard, RAG and search services were restarted. The existing user remained signed in, saved chats/files/search remained available, and database user/conversation/message/file counts were unchanged across that restart check.
 - Application and RAG health checks returned success. Anonymous conversation/file requests returned 401. Authenticated reporting, metrics, CSV and categories routes returned success.
+- Final rebuilt-image browser check returned sum 60, rendered a bar chart and previewed workbook cells 10/20/30. The model initially emitted a Python one-liner with comments that swallowed its file-writing statements, then retried successfully. This demonstrates a model reliability concern rather than a deterministic first-attempt pass. Generated code and outcomes still need user review. Final evidence is saved locally in `.mygpt-local/browser-final-check.png`.
 
 ## Dependencies and remaining limits
 
