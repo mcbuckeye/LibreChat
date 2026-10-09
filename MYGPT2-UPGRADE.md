@@ -1,6 +1,6 @@
 # MyGPT2 upgrade assessment
 
-Assessed October 9, 2026. This document prepares the upgrade; no upstream upgrade or database migration has been applied.
+Assessed October 9, 2026. The pinned v0.8.8 upgrade has now been integrated and tested in an isolated Docker Compose stack with fresh data. See [the implementation and test report](MYGPT2-UPGRADE-TESTS.md) for the completed work and remaining validation. Production MyGPT and its data have not been migrated. The assessment below records the original baseline and migration considerations.
 
 ## Baseline and target
 
