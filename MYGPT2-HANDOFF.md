@@ -69,18 +69,20 @@ without the archive deliberately defaults to local email login and custom mode.
 
 The official interpreter already runs on pchomelab as the separate mygpt2-codeapi
 Compose project. Do not recreate it or expose its API publicly for this handoff.
-The developer Mac needs SSH access to a hostname/IP reachable without Tailscale.
-Its address, forwarded SSH port and authorized login must be confirmed first.
+The confirmed LAN SSH destination is steve@192.168.2.50 on port 22.
+The BeOne Mac must be on a network with a route to that private LAN address.
+Outside that LAN, an approved VPN or reachable SSH gateway is required;
+192.168.2.50 is not a public Internet address.
 Do not guess a public IP or change router/firewall settings automatically.
 
 Set up approved SSH access on the BeOne Mac and verify the host key through a
 trusted source. Do not copy a private SSH key from the personal Mac; use your
 approved existing key or provision a new authorized key deliberately.
 
-In a terminal, keep this running (replace the example with the confirmed host):
+In a terminal, keep this running after authenticating SSH on the BeOne Mac:
 
 ```sh
-./scripts/mygpt2/interpreter-tunnel.sh steve@REACHABLE_SSH_HOST 22
+./scripts/mygpt2/interpreter-tunnel.sh steve@192.168.2.50 22
 ```
 
 This binds only 127.0.0.1:33114 on the Mac. SSH forwards to the interpreter's
@@ -151,9 +153,20 @@ branch diff. The private archive is ignored and mode 0600.
 
 A read-only SSH attempt over the old Mac's current Tailscale route required a
 new Tailscale authorization check and was canceled; no end-to-end direct SSH
-validation is claimed. The remote hostname/port and BeOne network reachability
-remain to be supplied. No homelab service or router setting was changed.
+validation was claimed for that attempt. No homelab service or router setting was changed.
 
 Required npm run lighthouse passed on isolated localhost:3098 with a fresh
 production build and Chrome. Three-run medians: LCP 3697ms,
 CLS 0.0169, TBT 49ms; all budgets passed.
+
+
+## Confirmed LAN SSH destination
+
+User supplied steve@192.168.2.50. TCP port 22 was reachable from the source Mac.
+A scanned host key matched a previously trusted key for pchomelab; only that
+matching key was added for the LAN address, with strict host checking retained.
+A read-only, noninteractive SSH attempt failed with Permission denied
+(publickey,password). No remote command or configuration change succeeded.
+The destination Mac still needs its own authorized key or interactive password
+login. Start with ssh steve@192.168.2.50 there, then run the tunnel helper.
+Full tunnel and interpreter health validation remain pending authentication.
